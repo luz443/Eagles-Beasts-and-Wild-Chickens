@@ -1,0 +1,101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AttemptRecord",
+  "type": "object",
+  "required": ["id", "attempt", "expectation", "observation", "blocker",
+               "attribution", "boundary", "confidence", "status", "provenance"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "pattern": "^R-[0-9]{3,}$" },
+    "attempt": { "type": "string", "minLength": 1 },
+    "expectation": { "type": "string", "minLength": 1 },
+    "observation": { "type": "string", "minLength": 1 },
+    "blocker": { "type": "string", "minLength": 1 },
+    "attribution": {
+      "type": "object",
+      "required": ["text", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "text": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "enum": ["assumption", "observed"] }
+      }
+    },
+    "missing_info": { "type": "array", "items": { "type": "string" } },
+    "boundary": { "type": "string", "minLength": 1 },
+    "conditions": {
+      "type": "object",
+      "propertyNames": {
+        "enum": ["model", "seq_len", "batch", "micro_batch", "precision", "hardware", "dataset_version", "stage", "framework"]
+      },
+      "additionalProperties": { "type": "string", "minLength": 1 }
+    },
+    "confidence": { "type": "string", "enum": ["high", "medium", "low"] },
+    "status": { "type": "string", "enum": ["进行中", "已放弃", "已绕过", "已解决"] },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["kind", "ref"],
+        "properties": {
+          "kind": { "type": "string", "enum": ["code", "data", "log"] },
+          "ref": { "type": "string" }
+        }
+      }
+    },
+    "links": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["target", "relation"],
+        "properties": {
+          "target": { "type": "string", "pattern": "^R-[0-9]{3,}$" },
+          "relation": { "type": "string", "enum": ["重复", "相似", "冲突"] },
+          "same": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["dim", "value"],
+              "properties": { "dim": { "type": "string" }, "value": { "type": "string" } }
+            }
+          },
+          "diff": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["dim", "from", "to"],
+              "properties": {
+                "dim": { "type": "string" },
+                "from": { "type": "string" },
+                "to": { "type": "string" }
+              }
+            }
+          },
+          "transferable": { "type": "string" }
+        }
+      }
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["record", "quote"],
+        "properties": {
+          "record": { "type": "string", "pattern": "^R-[0-9]{3,}$" },
+          "quote": { "type": "string", "minLength": 4 }
+        }
+      }
+    },
+    "dedup_key": { "type": "string" },
+    "version": { "type": "integer", "minimum": 1, "default": 1 },
+    "provenance": {
+      "type": "object",
+      "required": ["author", "date", "source"],
+      "properties": {
+        "author": { "type": "string", "minLength": 1 },
+        "date": { "type": "string", "minLength": 1 },
+        "source": { "type": "string", "enum": ["真实", "模拟"] },
+        "remap_from": { "type": "string" }
+      }
+    }
+  }
+}

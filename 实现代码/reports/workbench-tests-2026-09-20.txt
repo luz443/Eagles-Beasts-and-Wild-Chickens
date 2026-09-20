@@ -1,0 +1,240 @@
+已生成 reports\contract-parity.json：dims 9 个，fixtures 8 个，dedup_samples 4 个
+  invalid_conditions.json          ['conditions.seq_len', 'conditions.bad', 'conditions.bad']
+  invalid_conditions_container.json ['conditions']
+  invalid_free_text_dim.json       ['links[0].same[0].dim']
+  invalid_missing_field.json       ['expectation', 'attribution', 'boundary', 'confidence', 'status', 'provenance', 'confidence', 'status']
+  invalid_nested_null.json         ['links[0]']
+  invalid_quote_too_short.json     ['evidence_refs[0].quote']
+  valid_conditions.json            （无违规）
+  valid_record.json                （无违规）
+两端一致性测试通过：8 个夹具 + 4 个指纹样本 + 维度枚举，结论逐条相等。
+OK    往返 library {} → #/library
+OK    往返 library {"query":"显存"} → #/library?q=%E6%98%BE%E5%AD%98
+OK    往返 library {"query":"显存","status":"进行中","sort":"confidence"} → #/library?q=%E6%98%BE%E5%AD%98&status=%E8%BF%9B%E8%A1%8C%E4%B8%AD&sort=confidence
+OK    往返 library {"sort":"linked"} → #/library?sort=linked
+OK    往返 projectCheck {} → #/projectCheck
+OK    往返 map {} → #/map
+OK    往返 compareMatrix {} → #/compareMatrix
+OK    往返 incubation {} → #/incubation
+OK    往返 detail {"id":"R-003"} → #/detail/R-003
+OK    默认排序不写进 URL
+OK    空 hash → null
+OK    未知视图 → null
+OK    detail 缺编号 → null
+OK    只有 # 号 → null
+OK    缺前导斜杠可解析
+OK    #/ 带尾斜杠可解析
+OK    特殊字符往返
+OK    档案编号转义往返
+OK    缺省与空串等价
+OK    真实差异报 false
+OK    多一个键报 false
+
+通过 21 项，失败 0 项
+OK    order 保持库内顺序
+OK    confidence 低在前且同值稳定
+OK    linked 多在前
+OK    不改动入参
+OK    返回新数组
+OK    非法模式 → 库内顺序
+OK    normalizeSort 非法值回落 order
+OK    空数组安全
+OK    非数组安全
+OK    linked 缺回调时按全 0 处理（仍稳定）
+
+通过 10 项，失败 0 项
+OK    refute.js 里能抽到标记字面量
+OK    incubation.js 里能抽到标记字面量
+OK    refutation.py 里能抽到标记字面量
+OK    网页两处字面量一致
+OK    Python 与网页字面量一致（两端唯一真源）
+OK    Python 归纳技能确实调用了 exclude_refutations
+OK    网页孵化清单在分组前过滤纠错记录
+OK    文件存在且非空：web/js/refute.js
+OK    文件存在且非空：web/js/views/incubation.js
+OK    文件存在且非空：src/rra/library/refutation.py
+
+通过 10 项，失败 0 项
+OK    正常导入：内存含新档案
+OK    正常导入：已落盘
+OK    正常导入：报告列出新增
+OK    写失败：导入抛错
+OK    写失败：内存未被污染
+OK    写失败：存储仍是旧库（R-999 没写进去）
+OK    save 失败：抛错且内存不变
+OK    commit 拒绝不合规库
+OK    拒绝时未写存储
+OK    反驳在写失败时抛错
+OK    反驳写失败后内存未污染
+
+通过 11 项，失败 0 项
+Workbench contract and deep-link regressions passed
+Conditions, grouping and verification persistence regressions passed
+== Python 测试 ==
+== 重新生成契约快照（Python 口径，避免两端测试拿过期基准静默通过）==
+== 前端测试（契约 / 路由 / 排序 / 纠错规则 / 写失败原子性）==
+
+test_after_freeze_blind_readable (test_blind.TestBlindGuard.test_after_freeze_blind_readable) ... ok
+test_duplicate_freeze_raises (test_blind.TestBlindGuard.test_duplicate_freeze_raises) ... ok
+test_freeze_without_hash_is_refused (test_blind.TestBlindGuard.test_freeze_without_hash_is_refused)
+手工塞一条没有哈希的冻结记录：也不许读取盲测用例。 ... ok
+test_hash_prompt_is_stable_hex (test_blind.TestBlindGuard.test_hash_prompt_is_stable_hex) ... ok
+test_open_case_always_readable (test_blind.TestBlindGuard.test_open_case_always_readable) ... ok
+test_read_before_freeze_raises (test_blind.TestBlindGuard.test_read_before_freeze_raises) ... ok
+test_seal_records_hash_and_path (test_blind.TestBlindGuard.test_seal_records_hash_and_path) ... ok
+test_seal_rejects_missing_file (test_blind.TestBlindGuard.test_seal_rejects_missing_file) ... ok
+test_seal_requires_prompt_path (test_blind.TestBlindGuard.test_seal_requires_prompt_path)
+核心回归：没有提示词路径不许冻结（旧实现允许空哈希）。 ... ok
+test_tampering_after_freeze_blocks_reading (test_blind.TestBlindGuard.test_tampering_after_freeze_blocks_reading)
+核心回归：冻结后改提示词 → 再读盲测用例必须被拦下。 ... ok
+test_blind_10_open_17 (test_cases.TestCases.test_blind_10_open_17) ... ok
+test_get_by_no (test_cases.TestCases.test_get_by_no) ... ok
+test_numbering_continuous (test_cases.TestCases.test_numbering_continuous) ... ok
+test_total_27 (test_cases.TestCases.test_total_27) ... ok
+test_missing_engine_reports_clearly (test_cli_bootstrap.TestCliBootstrap.test_missing_engine_reports_clearly)
+把 CLI 单独复制到孤立目录：必须给出可读错误，而不是 ModuleNotFoundError。 ... ok
+test_runs_from_repo_root_without_pythonpath (test_cli_bootstrap.TestCliBootstrap.test_runs_from_repo_root_without_pythonpath) ... ok
+test_runs_from_unrelated_cwd (test_cli_bootstrap.TestCliBootstrap.test_runs_from_unrelated_cwd)
+在无关目录里跑（模拟"装好后随手调用"）也要通，并能自己找到样例与契约。 ... ok
+test_condition_dedup_normalizes_width_case_and_repeated_spaces (test_conditions.TestConditions.test_condition_dedup_normalizes_width_case_and_repeated_spaces) ... ok
+test_condition_dedup_preserves_version_punctuation (test_conditions.TestConditions.test_condition_dedup_preserves_version_punctuation) ... ok
+test_dedup_distinguishes_changed_conditions_and_ignores_order (test_conditions.TestConditions.test_dedup_distinguishes_changed_conditions_and_ignores_order) ... ok
+test_missing_and_empty_conditions_keep_legacy_serialization (test_conditions.TestConditions.test_missing_and_empty_conditions_keep_legacy_serialization) ... ok
+test_seed_conditions_expose_multiscenario_comparison (test_conditions.TestConditions.test_seed_conditions_expose_multiscenario_comparison) ... ok
+test_structured_conditions_survive_store_roundtrip (test_conditions.TestConditions.test_structured_conditions_survive_store_roundtrip) ... ok
+test_validator_accepts_all_nine_dimensions_and_empty_object (test_conditions.TestConditions.test_validator_accepts_all_nine_dimensions_and_empty_object) ... ok
+test_validator_reports_condition_type_key_and_value_paths (test_conditions.TestConditions.test_validator_reports_condition_type_key_and_value_paths) ... ok
+test_fingerprint_differs_on_content (test_dedup.TestDedup.test_fingerprint_differs_on_content) ... ok
+test_fingerprint_includes_link_conditions (test_dedup.TestDedup.test_fingerprint_includes_link_conditions)
+指纹必须包含关键条件（文档口径：尝试 + 阻塞点 + 关键条件）。 ... ok
+test_fingerprint_normalizes_whitespace_and_case (test_dedup.TestDedup.test_fingerprint_normalizes_whitespace_and_case) ... ok
+test_fingerprint_stable (test_dedup.TestDedup.test_fingerprint_stable) ... ok
+test_enum_matches_schema (test_dims.TestDims.test_enum_matches_schema) ... ok
+test_labels_cover_all_dims (test_dims.TestDims.test_labels_cover_all_dims) ... ok
+test_schema_dim_enum_matches (test_dims.TestDims.test_schema_dim_enum_matches)
+record.schema.json 里没有写死 dim 枚举，靠 validator 的枚举集合兜底； ... ok
+test_blind_without_freeze_exits_one (test_eval_cli.TestEvalCliDiscipline.test_blind_without_freeze_exits_one) ... ok
+test_create_freeze_then_blind_passes_guard (test_eval_cli.TestEvalCliDiscipline.test_create_freeze_then_blind_passes_guard) ... ok
+test_no_executor_exits_one (test_eval_cli.TestEvalCliDiscipline.test_no_executor_exits_one) ... ok
+test_placeholder_requires_flag_and_writes_local_only (test_eval_cli.TestEvalCliDiscipline.test_placeholder_requires_flag_and_writes_local_only) ... ok
+test_fabricated_quote_is_rejected (test_evidence_quote.TestEvidenceQuoteVerification.test_fabricated_quote_is_rejected)
+核心用例：引文与目标档案完全无关 → 必须报违规（原实现会放过）。 ... ok
+test_quote_from_attribution_text_passes (test_evidence_quote.TestEvidenceQuoteVerification.test_quote_from_attribution_text_passes) ... ok
+test_quote_from_blocker_passes (test_evidence_quote.TestEvidenceQuoteVerification.test_quote_from_blocker_passes) ... ok
+test_quote_from_observation_passes (test_evidence_quote.TestEvidenceQuoteVerification.test_quote_from_observation_passes) ... ok
+test_seed_library_quotes_are_all_verifiable (test_evidence_quote.TestEvidenceQuoteVerification.test_seed_library_quotes_are_all_verifiable)
+真实种子库自检：14 条记录里每一处 evidence_refs 都必须能在目标档案中找到原文。 ... ok
+test_single_archive_validation_has_no_library_context (test_evidence_quote.TestEvidenceQuoteVerification.test_single_archive_validation_has_no_library_context)
+明确边界：单档案校验拿不到别的档案，跨档案核验只发生在整库校验里。 ... ok
+test_whitespace_and_width_are_tolerated (test_evidence_quote.TestEvidenceQuoteVerification.test_whitespace_and_width_are_tolerated)
+引文里多打了空格、全角半角混用不该误报（复用去重同一套 normalize）。 ... ok
+test_archive_report_has_id_and_quote (test_export.TestExport.test_archive_report_has_id_and_quote) ... ok
+test_blocker_digest_groups_by_blocker (test_export.TestExport.test_blocker_digest_groups_by_blocker) ... ok
+test_free_text_dim_rejected (test_fixtures.TestFixtures.test_free_text_dim_rejected) ... ok
+test_missing_field_rejected (test_fixtures.TestFixtures.test_missing_field_rejected) ... ok
+test_short_quote_rejected (test_fixtures.TestFixtures.test_short_quote_rejected) ... ok
+test_valid_record_passes (test_fixtures.TestFixtures.test_valid_record_passes) ... ok
+test_citation_format (test_models.TestModels.test_citation_format) ... ok
+test_library_roundtrip_and_index (test_models.TestModels.test_library_roundtrip_and_index)
+库往返不能丢档案；编号重复必须报错。 ... ok
+test_roundtrip_keeps_all_fields (test_models.TestModels.test_roundtrip_keeps_all_fields)
+往返一次后必须与原字典一致；version 缺省补 1。 ... ok
+test_version_defaults_to_1 (test_models.TestModels.test_version_defaults_to_1) ... ok
+test_exclude_keeps_order_and_does_not_mutate (test_refutation_filter.TestInductionGate.test_exclude_keeps_order_and_does_not_mutate) ... ok
+test_non_list_input_safe (test_refutation_filter.TestInductionGate.test_non_list_input_safe) ... ok
+test_three_real_plus_refutation_group_has_exactly_three (test_refutation_filter.TestInductionGate.test_three_real_plus_refutation_group_has_exactly_three) ... ok
+test_two_real_plus_one_refutation_produces_no_group (test_refutation_filter.TestInductionGate.test_two_real_plus_one_refutation_produces_no_group)
+网页端注释里的那个反例：2 条真实 + 1 条纠错，不得凑满 3 条产出假设。 ... ok
+test_exact_marker (test_refutation_filter.TestIsRefutation.test_exact_marker) ... ok
+test_marker_inside_longer_attempt (test_refutation_filter.TestIsRefutation.test_marker_inside_longer_attempt) ... ok
+test_marker_literal_matches_web (test_refutation_filter.TestIsRefutation.test_marker_literal_matches_web)
+字面量必须与网页端逐字一致——这是两端规则的连接点。 ... ok
+test_missing_or_bad_shape (test_refutation_filter.TestIsRefutation.test_missing_or_bad_shape) ... ok
+test_normal_record_is_not_refutation (test_refutation_filter.TestIsRefutation.test_normal_record_is_not_refutation) ... ok
+test_claimed_hit_must_exist_in_library (test_runner.TestJudge.test_claimed_hit_must_exist_in_library) ... ok
+test_every_case_kind_has_an_explicit_decision (test_runner.TestJudge.test_every_case_kind_has_an_explicit_decision)
+新增 CaseKind 必须同时在规则表里给出决定，否则这条会失败。 ... ok
+test_executor_booleans_no_longer_count (test_runner.TestJudge.test_executor_booleans_no_longer_count)
+核心回归：执行器交回"全是 True 的结果对象"，一律判失败。 ... ok
+test_fabricated_quote_fails_citation (test_runner.TestJudge.test_fabricated_quote_fails_citation) ... ok
+test_good_output_passes_when_kind_expects_hit (test_runner.TestJudge.test_good_output_passes_when_kind_expects_hit) ... ok
+test_kind_expecting_no_hit_rejects_claimed_ids (test_runner.TestJudge.test_kind_expecting_no_hit_rejects_claimed_ids) ... ok
+test_no_output_at_all_is_failure (test_runner.TestJudge.test_no_output_at_all_is_failure) ... ok
+test_observed_without_evidence_is_fabricated (test_runner.TestJudge.test_observed_without_evidence_is_fabricated) ... ok
+test_semantic_kind_is_not_counted_as_pass (test_runner.TestJudge.test_semantic_kind_is_not_counted_as_pass) ... ok
+test_citation_accuracy (test_runner.TestRunnerAndReport.test_citation_accuracy) ... ok
+test_markdown_table_has_header_and_rows (test_runner.TestRunnerAndReport.test_markdown_table_has_header_and_rows) ... ok
+test_passed_requires_all_criteria (test_runner.TestRunnerAndReport.test_passed_requires_all_criteria) ... ok
+test_placeholder_executor_yields_zero_pass_rate (test_runner.TestRunnerAndReport.test_placeholder_executor_yields_zero_pass_rate)
+占位执行器交回"没有输出" → 通过率必须是 0，指标不可能被自造。 ... ok
+test_runner_collects_judged_results (test_runner.TestRunnerAndReport.test_runner_collects_judged_results) ... ok
+test_empty_library_returns_empty (test_scorer.TestScorer.test_empty_library_returns_empty) ... ok
+test_explain_not_empty_when_hit (test_scorer.TestScorer.test_explain_not_empty_when_hit) ... ok
+test_single_char_query_returns_empty (test_scorer.TestScorer.test_single_char_query_returns_empty)
+单字查询没有区分度，不得命中（否则"库内无相关记录"会被误报）。 ... ok
+test_unrelated_query_returns_empty (test_scorer.TestScorer.test_unrelated_query_returns_empty) ... ok
+test_weights_from_contract (test_scorer.TestScorer.test_weights_from_contract) ... D:\粤港澳大湾区AI创新比赛\实现代码\src\rra\recall\scorer.py:60: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\粤港澳大湾区AI创新比赛\\实现代码\\contracts\\scoring.json' mode='r' encoding='utf-8'>
+  raw = json.loads(open(path, encoding="utf-8").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_all_records_valid (test_seed.TestSeedGenerator.test_all_records_valid)
+每条种子记录都必须能通过契约校验。 ... ok
+test_check_plan_reports_no_issues (test_seed.TestSeedGenerator.test_check_plan_reports_no_issues) ... ok
+test_foreshadowing_present (test_seed.TestSeedGenerator.test_foreshadowing_present)
+死实验复活的伏笔：已放弃且阻塞点明确的记录必须 >= 2 条。 ... ok
+test_generates_planned_count (test_seed.TestSeedGenerator.test_generates_planned_count) ... ok
+test_same_blocker_cluster_exists (test_seed.TestSeedGenerator.test_same_blocker_cluster_exists)
+同一阻塞点至少 3 条，供失败地图与孵化清单使用。 ... ok
+test_source_marked_simulation (test_seed.TestSeedGenerator.test_source_marked_simulation) ... ok
+test_refuses_without_evidence (test_skill_base.TestSkillBase.test_refuses_without_evidence) ... ok
+test_run_returns_output_when_valid (test_skill_base.TestSkillBase.test_run_returns_output_when_valid) ... ok
+test_validate_delegates_to_validator (test_skill_base.TestSkillBase.test_validate_delegates_to_validator) ... ok
+test_disabled_cache_does_not_write (test_skill_cache.TestSkillCache.test_disabled_cache_does_not_write) ... ok
+test_enabled_cache_roundtrip (test_skill_cache.TestSkillCache.test_enabled_cache_roundtrip) ... ok
+test_key_differs_on_input (test_skill_cache.TestSkillCache.test_key_differs_on_input) ... ok
+test_key_is_stable (test_skill_cache.TestSkillCache.test_key_is_stable) ... ok
+test_miss_returns_none (test_skill_cache.TestSkillCache.test_miss_returns_none) ... ok
+test_any_missing_dim_makes_verdict_inconclusive (test_skill_helpers.TestConditionCompare.test_any_missing_dim_makes_verdict_inconclusive) ... ok
+test_condition_comparison_trims_values (test_skill_helpers.TestConditionCompare.test_condition_comparison_trims_values) ... ok
+test_differing_dim_blocks_conflict (test_skill_helpers.TestConditionCompare.test_differing_dim_blocks_conflict) ... ok
+test_differing_dims_listed (test_skill_helpers.TestConditionCompare.test_differing_dims_listed) ... ok
+test_no_shared_dim_is_inconclusive (test_skill_helpers.TestConditionCompare.test_no_shared_dim_is_inconclusive)
+两侧没有任何共同维度时必须报"条件不全"，不得下结论。 ... ok
+test_same_conditions_no_conflict_is_same_issue (test_skill_helpers.TestConditionCompare.test_same_conditions_no_conflict_is_same_issue) ... ok
+test_same_conditions_plus_conflict_is_real_conflict (test_skill_helpers.TestConditionCompare.test_same_conditions_plus_conflict_is_real_conflict) ... ok
+test_whitespace_only_condition_is_missing_not_different (test_skill_helpers.TestConditionCompare.test_whitespace_only_condition_is_missing_not_different) ... ok
+test_eligible_groups_need_three (test_skill_helpers.TestInduction.test_eligible_groups_need_three) ... ok
+test_candidates_are_abandoned_with_blocker (test_skill_helpers.TestResurrection.test_candidates_are_abandoned_with_blocker) ... ok
+test_apply_clarification_removes_resolved_keys (test_skill_helpers.TestReverseLookupBookkeeping.test_apply_clarification_removes_resolved_keys) ... ok
+test_challenge_with_evidence_is_valid (test_skill_helpers.TestReviewer2.test_challenge_with_evidence_is_valid) ... ok
+test_challenge_without_evidence_is_invalid (test_skill_helpers.TestReviewer2.test_challenge_without_evidence_is_invalid) ... ok
+test_load_save_roundtrip (test_store.TestStore.test_load_save_roundtrip) ... ok
+test_merge_dedup_by_fingerprint (test_store.TestStore.test_merge_dedup_by_fingerprint) ... ok
+test_merge_same_id_different_content_renumbers (test_store.TestStore.test_merge_same_id_different_content_renumbers) ... ok
+test_next_id (test_store.TestStore.test_next_id) ... ok
+test_dim_is_enum (test_validator.TestValidator.test_dim_is_enum) ... ok
+test_evidence_record_format_checked (test_validator.TestValidator.test_evidence_record_format_checked) ... ok
+test_free_text_dim_rejected (test_validator.TestValidator.test_free_text_dim_rejected)
+dim 写自由文本（夹具 invalid_free_text_dim.json）必须被拒绝。 ... ok
+test_library_with_null_element_reports_violation_not_crash (test_validator.TestValidator.test_library_with_null_element_reports_violation_not_crash)
+畸形库（records 里有 null）必须报违规，而不是把校验器打崩。 ... ok
+test_missing_required_field (test_validator.TestValidator.test_missing_required_field)
+缺 expectation（夹具 invalid_missing_field.json）必须报出具体路径。 ... ok
+test_non_string_required_field_rejected (test_validator.TestValidator.test_non_string_required_field_rejected) ... ok
+test_short_quote_rejected (test_validator.TestValidator.test_short_quote_rejected)
+证据引用的原文片段过短（夹具 invalid_quote_too_short.json）必须被拒绝。 ... ok
+test_unknown_key_rejected (test_validator.TestValidator.test_unknown_key_rejected)
+契约声明了 additionalProperties: false，未知字段必须被拒。 ... ok
+test_valid_fixture_passes (test_validator.TestValidator.test_valid_fixture_passes) ... ok
+test_violation_str_has_all_three (test_validator.TestValidator.test_violation_str_has_all_three)
+Violation 的字符串必须含路径、原因、期望三要素，不允许只说「有问题」。 ... ok
+test_archive_reports_paths_instead_of_raising (test_validator_hardening.TestNestedShapeRobustness.test_archive_reports_paths_instead_of_raising) ... ok
+test_library_layer_also_survives (test_validator_hardening.TestNestedShapeRobustness.test_library_layer_also_survives)
+整库层也不能崩（审查未点到，但同一段逻辑在这里也有）。 ... ok
+test_violations_carry_all_three_parts (test_validator_hardening.TestNestedShapeRobustness.test_violations_carry_all_three_parts) ... ok
+test_well_formed_input_still_clean (test_validator_hardening.TestNestedShapeRobustness.test_well_formed_input_still_clean) ... ok
+
+----------------------------------------------------------------------
+Ran 126 tests in 0.786s
+
+OK

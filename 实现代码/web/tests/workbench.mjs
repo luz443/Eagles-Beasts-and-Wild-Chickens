@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import { ContractValidator } from '../js/contracts.js';
+import { routeToHash, parseHash } from '../js/route.js';
+import fs from 'node:fs';
+import { conditionRows } from '../js/util/conditions.js';
+import { VerificationStore } from '../js/verification.js';
+import { blockerGroups } from '../js/workflow.js';
+const fixture = JSON.parse(fs.readFileSync(new URL('../../contracts/fixtures/valid_record.json', import.meta.url)));
+const validator = new ContractValidator();
+assert.deepEqual(validator.validateArchive({...fixture,conditions:{seq_len:'2048'}}), [], 'structured conditions accepted');
+assert(validator.validateArchive({...fixture,conditions:{seq_len:2048}}).some(v=>v.path==='conditions.seq_len'));
+assert(validator.validateArchive({...fixture,conditions:{made_up:'x'}}).some(v=>v.path==='conditions.made_up'));
+for(const [name, params] of [['map',{blocker:'显存'}],['compareMatrix',{ids:'R-001,R-002',query:'显存'}],['incubation',{blocker:'显存'}],['projectCheck',{query:'长序列'}]]){
+  assert.deepEqual(parseHash(routeToHash(name,params)).params,params,'workflow deep links retain context');
+}
+console.log('Workbench contract and deep-link regressions passed');
+const missing=conditionRows([{conditions:{seq_len:'2048',model:' '}},{conditions:{seq_len:'2048'}}]);
+assert.equal(missing.find(r=>r.dim==='model').missing,true);
+assert.equal(missing.find(r=>r.dim==='model').different,false);
+assert.notEqual(validator.dedupKeyForParity({...fixture,conditions:{dataset_version:'v1.10'}}),validator.dedupKeyForParity({...fixture,conditions:{dataset_version:'v11.0'}}));
+assert.equal(blockerGroups([{blocker:'无（成功）',attempt:'成功'},{blocker:'显存',attempt:'人工纠错'}]).length,0);
+let saved={};const adapter={read:()=>structuredClone(saved),write:(_key,v)=>{saved=structuredClone(v);}};
+const notes=new VerificationStore(adapter);
+assert.throws(()=>notes.save('显存',{status:'已证实',action:'复测'}),/结果/);
+notes.save('显存',{status:'验证中',action:'固定序列长度对照批大小',owner:'测试'});
+assert.equal(new VerificationStore(adapter).get('显存').owner,'测试');
+const before=JSON.stringify(saved);
+assert.equal(typeof notes.restore,'function','backup restore is available');
+assert.throws(()=>notes.restore({format:'rra-verification-v1',plans:{broken:{status:'invalid'}}}));
+assert.equal(JSON.stringify(saved),before,'invalid restoration is atomic');
+console.log('Conditions, grouping and verification persistence regressions passed');

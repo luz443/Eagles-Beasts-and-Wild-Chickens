@@ -1,0 +1,63 @@
+{
+  "name": "research-retro-assistant",
+  "version": "1.0.0",
+  "description": "Turn messy experiment logs into structured, evidence-cited research archives, and look up prior attempts on entry.",
+  "homepage": {
+    "url": "https://github.com/",
+    "type": "repository"
+  },
+  "license": "MIT",
+  "keywords": ["research", "experiment-log", "failure-archive", "evidence", "knowledge-reuse"],
+
+  "agents": ["./agents/research-retro-assistant.md"],
+  "skills": [
+    "./skills/extract-record",
+    "./skills/reverse-lookup",
+    "./skills/condition-compare",
+    "./skills/induction",
+    "./skills/resurrection",
+    "./skills/reviewer2"
+  ],
+
+  "expertType": "agent",
+  "agentName": "research-retro-assistant",
+
+  "displayName": {
+    "en": "Research Retro Assistant",
+    "zh": "研究复盘助手"
+  },
+  "profession": {
+    "en": "Research Process Retrospective Specialist",
+    "zh": "研究过程复盘专家"
+  },
+  "displayDescription": {
+    "en": "Turns messy experiment logs into numbered, evidence-cited archives, looks up similar attempts on entry, so failure knowledge becomes searchable, checkable and reusable.",
+    "zh": "把杂乱实验记录读成带编号与原文证据的档案，入库即反查同类尝试，失败经验因此可检索、可复核、可复用。"
+  },
+  "avatar": "avatars/expert.png",
+  "categoryId": "04-DataAI",
+  "defaultInitPrompt": {
+    "zh": "我把一段实验日志贴给你，帮我抽成带证据引用的结构化档案。",
+    "en": "Here is a raw experiment log - turn it into a structured archive with evidence citations."
+  },
+  "plugin": "research-retro-assistant",
+  "tags": [
+    { "en": "Experiment Log Structuring", "zh": "实验记录结构化" },
+    { "en": "Evidence Citation Checking", "zh": "证据引用核验" },
+    { "en": "Failure Knowledge Reuse", "zh": "失败经验复用" }
+  ],
+  "quickPrompts": [
+    {
+      "zh": "我把一段实验日志贴给你，帮我抽成带证据引用的结构化档案。",
+      "en": "Here is a raw experiment log - turn it into a structured archive with evidence citations."
+    },
+    {
+      "zh": "我刚记完一条失败记录，帮我反查库里有没有同类尝试和冲突判断。",
+      "en": "I just logged a failure. Look up similar attempts and contradicting verdicts in my library."
+    },
+    {
+      "zh": "把同一阻塞点的记录归纳成一条可立项的假设，并标注证据强度。",
+      "en": "Induct records sharing one blocker into a project-ready hypothesis with evidence strength."
+    }
+  ]
+}

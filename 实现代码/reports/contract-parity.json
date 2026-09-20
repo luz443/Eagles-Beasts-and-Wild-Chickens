@@ -1,0 +1,286 @@
+{
+  "_note": "由 tools/make_contract_parity.py 从 Python 校验器生成；run_tests.py 会自动重建。",
+  "_generated_at": "2026-09-20T13:05:36",
+  "dims": [
+    "model",
+    "seq_len",
+    "batch",
+    "micro_batch",
+    "precision",
+    "hardware",
+    "dataset_version",
+    "stage",
+    "framework"
+  ],
+  "fixtures": {
+    "invalid_conditions.json": [
+      "conditions.seq_len",
+      "conditions.bad",
+      "conditions.bad"
+    ],
+    "invalid_conditions_container.json": [
+      "conditions"
+    ],
+    "invalid_free_text_dim.json": [
+      "links[0].same[0].dim"
+    ],
+    "invalid_missing_field.json": [
+      "expectation",
+      "attribution",
+      "boundary",
+      "confidence",
+      "status",
+      "provenance",
+      "confidence",
+      "status"
+    ],
+    "invalid_nested_null.json": [
+      "links[0]"
+    ],
+    "invalid_quote_too_short.json": [
+      "evidence_refs[0].quote"
+    ],
+    "valid_conditions.json": [],
+    "valid_record.json": []
+  },
+  "dedup_samples": [
+    {
+      "input": {
+        "id": "R-001",
+        "attempt": "  长序列 训练  \"梯度累积\" ",
+        "expectation": "x",
+        "observation": "y",
+        "blocker": "显存 不足",
+        "attribution": {
+          "text": "猜",
+          "type": "assumption"
+        },
+        "boundary": "",
+        "confidence": "low",
+        "status": "进行中",
+        "provenance": {
+          "author": "甲",
+          "date": "2026-08-01",
+          "source": "模拟"
+        },
+        "links": [
+          {
+            "target": "R-002",
+            "relation": "相似",
+            "same": [
+              {
+                "dim": "seq_len",
+                "value": "512"
+              }
+            ],
+            "diff": [
+              {
+                "dim": "precision",
+                "from": "bf16",
+                "to": "fp16"
+              }
+            ]
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "code",
+            "ref": "a.py"
+          },
+          {
+            "kind": "log",
+            "ref": "b.log"
+          }
+        ]
+      },
+      "key": "长序列训练梯度累积\u001f显存不足\u001fprecision:bf16->fp16,seq_len=512\u001fapy,blog"
+    },
+    {
+      "input": {
+        "id": "R-013",
+        "attempt": "把 micro-batch 从 8 降到 2 并开启梯度累积跑长序列",
+        "expectation": "在 24G 显存上完成 seq_len=2048 的训练",
+        "observation": "显存仍不足，200 step 内 OOM 两次",
+        "blocker": "长序列下单卡显存不足",
+        "attribution": {
+          "text": "怀疑是注意力矩阵开销随序列长度平方增长",
+          "type": "assumption"
+        },
+        "missing_info": [
+          "micro-batch 实际生效值",
+          "是否开启 flash-attention"
+        ],
+        "boundary": "该结论仅在单卡 24G、未启用 flash-attention 时成立",
+        "confidence": "low",
+        "status": "进行中",
+        "links": [
+          {
+            "target": "R-008",
+            "relation": "相似",
+            "same": [
+              {
+                "dim": "model",
+                "value": "Llama-3-8B"
+              }
+            ],
+            "diff": [
+              {
+                "dim": "seq_len",
+                "from": "512",
+                "to": "2048"
+              }
+            ],
+            "transferable": "梯度累积对激活值占显存这类压力有效；对注意力矩阵开销未见证据"
+          }
+        ],
+        "evidence_refs": [
+          {
+            "record": "R-008",
+            "quote": "micro-batch 降到 4 之后显存稳定，改用梯度累积补回等效 batch"
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "log",
+            "ref": "runs/2026-08-14-oom.log"
+          }
+        ],
+        "dedup_key": "seq2048|显存不足|llama3-8b",
+        "provenance": {
+          "author": "模拟学生 A",
+          "date": "2026-08-14",
+          "source": "模拟"
+        },
+        "conditions": {
+          "dataset_version": "v1.10"
+        }
+      },
+      "key": "把micro-batch从8降到2并开启梯度累积跑长序列\u001f长序列下单卡显存不足\u001fmodel=llama-3-8b,seq_len:512->2048\u001fruns/2026-08-14-oomlog\u001f[[\"dataset_version\",\"v1.10\"]]"
+    },
+    {
+      "input": {
+        "id": "R-013",
+        "attempt": "把 micro-batch 从 8 降到 2 并开启梯度累积跑长序列",
+        "expectation": "在 24G 显存上完成 seq_len=2048 的训练",
+        "observation": "显存仍不足，200 step 内 OOM 两次",
+        "blocker": "长序列下单卡显存不足",
+        "attribution": {
+          "text": "怀疑是注意力矩阵开销随序列长度平方增长",
+          "type": "assumption"
+        },
+        "missing_info": [
+          "micro-batch 实际生效值",
+          "是否开启 flash-attention"
+        ],
+        "boundary": "该结论仅在单卡 24G、未启用 flash-attention 时成立",
+        "confidence": "low",
+        "status": "进行中",
+        "links": [
+          {
+            "target": "R-008",
+            "relation": "相似",
+            "same": [
+              {
+                "dim": "model",
+                "value": "Llama-3-8B"
+              }
+            ],
+            "diff": [
+              {
+                "dim": "seq_len",
+                "from": "512",
+                "to": "2048"
+              }
+            ],
+            "transferable": "梯度累积对激活值占显存这类压力有效；对注意力矩阵开销未见证据"
+          }
+        ],
+        "evidence_refs": [
+          {
+            "record": "R-008",
+            "quote": "micro-batch 降到 4 之后显存稳定，改用梯度累积补回等效 batch"
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "log",
+            "ref": "runs/2026-08-14-oom.log"
+          }
+        ],
+        "dedup_key": "seq2048|显存不足|llama3-8b",
+        "provenance": {
+          "author": "模拟学生 A",
+          "date": "2026-08-14",
+          "source": "模拟"
+        },
+        "conditions": {
+          "dataset_version": "v11.0"
+        }
+      },
+      "key": "把micro-batch从8降到2并开启梯度累积跑长序列\u001f长序列下单卡显存不足\u001fmodel=llama-3-8b,seq_len:512->2048\u001fruns/2026-08-14-oomlog\u001f[[\"dataset_version\",\"v11.0\"]]"
+    },
+    {
+      "input": {
+        "id": "R-013",
+        "attempt": "把 micro-batch 从 8 降到 2 并开启梯度累积跑长序列",
+        "expectation": "在 24G 显存上完成 seq_len=2048 的训练",
+        "observation": "显存仍不足，200 step 内 OOM 两次",
+        "blocker": "长序列下单卡显存不足",
+        "attribution": {
+          "text": "怀疑是注意力矩阵开销随序列长度平方增长",
+          "type": "assumption"
+        },
+        "missing_info": [
+          "micro-batch 实际生效值",
+          "是否开启 flash-attention"
+        ],
+        "boundary": "该结论仅在单卡 24G、未启用 flash-attention 时成立",
+        "confidence": "low",
+        "status": "进行中",
+        "links": [
+          {
+            "target": "R-008",
+            "relation": "相似",
+            "same": [
+              {
+                "dim": "model",
+                "value": "Llama-3-8B"
+              }
+            ],
+            "diff": [
+              {
+                "dim": "seq_len",
+                "from": "512",
+                "to": "2048"
+              }
+            ],
+            "transferable": "梯度累积对激活值占显存这类压力有效；对注意力矩阵开销未见证据"
+          }
+        ],
+        "evidence_refs": [
+          {
+            "record": "R-008",
+            "quote": "micro-batch 降到 4 之后显存稳定，改用梯度累积补回等效 batch"
+          }
+        ],
+        "artifacts": [
+          {
+            "kind": "log",
+            "ref": "runs/2026-08-14-oom.log"
+          }
+        ],
+        "dedup_key": "seq2048|显存不足|llama3-8b",
+        "provenance": {
+          "author": "模拟学生 A",
+          "date": "2026-08-14",
+          "source": "模拟"
+        },
+        "conditions": {
+          "precision": " ＢＦ１６ ",
+          "hardware": "RTX   4090"
+        }
+      },
+      "key": "把micro-batch从8降到2并开启梯度累积跑长序列\u001f长序列下单卡显存不足\u001fmodel=llama-3-8b,seq_len:512->2048\u001fruns/2026-08-14-oomlog\u001f[[\"hardware\",\"rtx 4090\"],[\"precision\",\"bf16\"]]"
+    }
+  ]
+}

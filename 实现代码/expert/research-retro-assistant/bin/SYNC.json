@@ -1,0 +1,8 @@
+{
+  "source_repo": "D:\\粤港澳大湾区AI创新比赛\\实现代码",
+  "note": "bin/rra、bin/samples、skills/*/references、bin/rra_cli.py 为生成物；改仓库后重跑本脚本。",
+  "engine_digest": "b94b4f285b4cfededb1757508fb1f7f1bf33e9e3b37edafd988810a0cc12a568",
+  "repo_engine_digest": "b94b4f285b4cfededb1757508fb1f7f1bf33e9e3b37edafd988810a0cc12a568",
+  "cli_digest": "d87692cea2fdc8a61c658bc1bdaaa165bcf6fbd8cbf9070f8d0caf91c8dd07c7",
+  "repo_cli_digest": "d87692cea2fdc8a61c658bc1bdaaa165bcf6fbd8cbf9070f8d0caf91c8dd07c7"
+}

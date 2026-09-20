@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Library",
+  "type": "object",
+  "required": ["version", "records"],
+  "additionalProperties": true,
+  "properties": {
+    "version": { "type": "string" },
+    "generated_at": { "type": "string" },
+    "records": {
+      "type": "array",
+      "items": { "$ref": "record.schema.json" },
+      "note": "校验器必须支持相对 $ref；若所用校验器不支持，请改用 record.schema.json 内联副本并由 CI 保证两份一致"
+    }
+  }
+}

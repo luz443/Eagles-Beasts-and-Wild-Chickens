@@ -1,0 +1,14 @@
+{
+  "version": "0.1",
+  "dims": [
+    { "key": "model", "label": "模型" },
+    { "key": "seq_len", "label": "序列长度" },
+    { "key": "batch", "label": "批大小" },
+    { "key": "micro_batch", "label": "微批大小" },
+    { "key": "precision", "label": "精度" },
+    { "key": "hardware", "label": "硬件" },
+    { "key": "dataset_version", "label": "数据版本" },
+    { "key": "stage", "label": "阶段" },
+    { "key": "framework", "label": "框架" }
+  ]
+}

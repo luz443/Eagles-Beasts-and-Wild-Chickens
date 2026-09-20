@@ -1,0 +1,26 @@
+=== 配色对比度实测（WCAG 2.1）===
+正文 ink / paper               fg=#1a1714 bg=#faf7f2  16.70:1  阈值 4.5  OK
+正文 ink / surface             fg=#1a1714 bg=#ffffff  17.85:1  阈值 4.5  OK
+次级 ink-2 / paper             fg=#57514a bg=#faf7f2  7.33:1  阈值 4.5  OK
+次级 ink-2 / surface           fg=#57514a bg=#ffffff  7.83:1  阈值 4.5  OK
+弱化 ink-3 / paper             fg=#6f6862 bg=#faf7f2  5.13:1  阈值 4.5  OK
+弱化 ink-3 / surface           fg=#6f6862 bg=#ffffff  5.48:1  阈值 4.5  OK
+强调 accent / paper            fg=#a63a24 bg=#faf7f2  6.04:1  阈值 4.5  OK
+强调 accent / surface          fg=#a63a24 bg=#ffffff  6.46:1  阈值 4.5  OK
+主按钮白字 / accent               fg=#ffffff bg=#a63a24  6.46:1  阈值 4.5  OK
+主按钮白字 / accent-hover         fg=#ffffff bg=#8c2f1c  8.27:1  阈值 4.5  OK
+已绕过 ok / 自身底                 fg=#1f5d4c bg=#e7f0ec  6.62:1  阈值 4.5  OK
+已解决 done / 自身底               fg=#42611b bg=#eff4e3  6.33:1  阈值 4.5  OK
+进行中 warn / 自身底               fg=#8a5a14 bg=#faf2e0  5.30:1  阈值 4.5  OK
+已放弃 danger / 自身底             fg=#9b3a30 bg=#f9ebe8  5.94:1  阈值 4.5  OK
+焦点圈 accent / paper           fg=#a63a24 bg=#faf7f2  6.04:1  阈值 3.0  OK
+控件边框 control / surface       fg=#8f877b bg=#ffffff  3.55:1  阈值 3.0  OK
+控件边框 control / paper         fg=#8f877b bg=#faf7f2  3.32:1  阈值 3.0  OK
+地图色带 ok / surface            fg=#1f5d4c bg=#ffffff  7.70:1  阈值 3.0  OK
+地图色带 danger / surface        fg=#9b3a30 bg=#ffffff  6.90:1  阈值 3.0  OK
+
+--- 装饰性线条（不承担语义，WCAG 1.4.11 豁免；此处仅透明登记实测值）---
+发丝线 rule / paper             fg=#e6e0d4 bg=#faf7f2  1.23:1  （豁免项，不作达标判定）
+结构线 rule-strong / paper      fg=#cdc4b4 bg=#faf7f2  1.62:1  （豁免项，不作达标判定）
+
+合计 19 对，未达标 0 对

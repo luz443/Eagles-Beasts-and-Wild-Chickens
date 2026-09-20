@@ -1,0 +1,27 @@
+fields:
+  名称:
+    description: 文献/来源标题
+    detail_level: 简要
+  出处与链接:
+    description: 期刊或平台 + 可访问 URL
+    detail_level: 详细
+  核心要点:
+    description: 一句话说明它证明了什么
+    detail_level: 简要
+  借鉴点:
+    description: 我们能直接拿去做什么
+    detail_level: 详细
+  对应设计章节:
+    description: 落在方案或仓库的哪一节
+    detail_level: 简要
+  证据强度:
+    description: 顶刊/会议 / 机构说明 / 博客盘点 / 未核实
+    detail_level: 简要
+  是否本轮核实:
+    description: 本轮检索是否命中原始页面
+    detail_level: 极简
+uncertain:
+  - NAS-Bench 失败配置记录
+  - 电子实验记录本与隐性知识
+  - 经验教训库工业实践
+  - 团队共享记忆研究

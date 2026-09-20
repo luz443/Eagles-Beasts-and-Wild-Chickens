@@ -1,0 +1,22 @@
+{
+  "id": "R-001",
+  "attempt": "畸形嵌套夹具：links 里放了一个 null",
+  "expectation": "校验器报出 links[0] 违规",
+  "observation": "构造这条夹具是为了让两端都不再抛异常",
+  "blocker": "校验器在畸形结构上崩掉",
+  "attribution": {
+    "text": "怀疑是元素类型未检查",
+    "type": "assumption"
+  },
+  "boundary": "仅用于校验器健壮性测试",
+  "confidence": "low",
+  "status": "进行中",
+  "links": [
+    null
+  ],
+  "provenance": {
+    "author": "契约夹具",
+    "date": "2026-09-19",
+    "source": "模拟"
+  }
+}

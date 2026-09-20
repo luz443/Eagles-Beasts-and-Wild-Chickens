@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+node_modules/
+.idea/
+.vscode/
+.learnbuddy/
+.workbuddy/
+.DS_Store
+Thumbs.db
+~$*
+.env
+.env.*
+!.env.example
+*.local.json

@@ -1,0 +1,11 @@
+{
+  "version": "0.1",
+  "note": "召回打分的字段权重。Python 侧与网页侧都必须读这一份，不得各自硬编码。",
+  "weights": {
+    "blocker": 3.0,
+    "attempt": 2.0,
+    "observation": 1.0,
+    "boundary": 1.0
+  },
+  "limit": 5
+}

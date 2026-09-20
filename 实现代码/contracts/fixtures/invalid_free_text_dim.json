@@ -1,0 +1,20 @@
+{
+  "id": "R-022",
+  "attempt": "调了下序列长度",
+  "expectation": "跑通",
+  "observation": "还是不行",
+  "blocker": "显存不足",
+  "attribution": { "text": "不确定", "type": "assumption" },
+  "boundary": "未知",
+  "confidence": "low",
+  "status": "进行中",
+  "links": [
+    {
+      "target": "R-008",
+      "relation": "相似",
+      "same": [{ "dim": "序列长度差不多", "value": "512" }],
+      "diff": []
+    }
+  ],
+  "provenance": { "author": "模拟学生 B", "date": "2026-08-20", "source": "模拟" }
+}

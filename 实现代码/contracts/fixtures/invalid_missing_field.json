@@ -1,0 +1,7 @@
+{
+  "id": "R-021",
+  "attempt": "换了个学习率",
+  "expectation": "",
+  "observation": "loss 不降",
+  "blocker": "收敛慢"
+}

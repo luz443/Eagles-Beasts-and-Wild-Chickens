@@ -1,0 +1,13 @@
+{
+  "id": "R-023",
+  "attempt": "复现 R-008",
+  "expectation": "复现成功",
+  "observation": "没复现出来",
+  "blocker": "显存不足",
+  "attribution": { "text": "条件不同", "type": "assumption" },
+  "boundary": "未知",
+  "confidence": "low",
+  "status": "已放弃",
+  "evidence_refs": [{ "record": "R-008", "quote": "行" }],
+  "provenance": { "author": "模拟学生 C", "date": "2026-08-21", "source": "模拟" }
+}

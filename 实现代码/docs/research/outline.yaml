@@ -1,0 +1,32 @@
+topic: 负结果知识管理与 AI 证据化抽取的可借鉴文献
+generated_at: "2026-09-19"
+tool: WebSearch
+axes:
+  - id: A1
+    name: 负结果与出版偏倚
+    items: [Rosenthal 1979 文件抽屉, Journal of Trial & Error, PLOS Missing Pieces, 负结果发表渠道盘点, Negative equity (元数据缺失), 华东师大「失败」的科研去哪儿了]
+  - id: A2
+    name: 案例推理 CBR
+    items: [Aamodt & Plaza 四阶段循环, Northwestern CBR 讲义, Empowering XAI through CBR]
+  - id: A3
+    name: 归因与证据
+    items: [AttrScore/AttrEval, FActScore, ALCE, NoMIRACL, 事实性综述]
+  - id: A4
+    name: 条件维度与证据分级
+    items: [PICO, GRADE 四档确定性, GRADE 证据摘要表, CHARMS 清单]
+  - id: A5
+    name: 结构化主张与可引用编号
+    items: [Nanopublication, ORKG, Semantic units]
+  - id: A6
+    name: ML 复现性
+    items: [Kapoor & Narayanan 2023, Serra-Garcia & Gneezy 2021, 催化剂 ML 阳性数据偏倚]
+execution:
+  batch_size: 1
+  items_per_agent: 6
+  output_dir: docs/research
+  note: 本轮为主 Agent 串行检索；若做第二轮可拆 6 个子 agent 并行，一轴一个
+next_round:
+  - 核实 NAS-Bench 系列的失败配置记录
+  - 核实电子实验记录本与隐性知识捕获研究
+  - 核实「经验教训库」工业实践（NASA LLIS 等）
+  - 检索中文数据库并做引文追溯
