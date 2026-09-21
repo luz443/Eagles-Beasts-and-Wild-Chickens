@@ -10,7 +10,7 @@ const validator = new ContractValidator();
 assert.deepEqual(validator.validateArchive({...fixture,conditions:{seq_len:'2048'}}), [], 'structured conditions accepted');
 assert(validator.validateArchive({...fixture,conditions:{seq_len:2048}}).some(v=>v.path==='conditions.seq_len'));
 assert(validator.validateArchive({...fixture,conditions:{made_up:'x'}}).some(v=>v.path==='conditions.made_up'));
-for(const [name, params] of [['map',{blocker:'显存'}],['compareMatrix',{ids:'R-001,R-002',query:'显存'}],['incubation',{blocker:'显存'}],['projectCheck',{query:'长序列'}]]){
+for(const [name, params] of [['map',{blocker:'显存'}],['compareMatrix',{ids:'R-001,R-002',query:'显存'}],['incubation',{blocker:'显存'}],['projectCheck',{query:'长序列'}],['resurrection',{blocker:'显存'}]]){
   assert.deepEqual(parseHash(routeToHash(name,params)).params,params,'workflow deep links retain context');
 }
 console.log('Workbench contract and deep-link regressions passed');

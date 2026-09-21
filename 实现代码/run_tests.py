@@ -31,10 +31,11 @@ def main() -> int:
     if r0.returncode != 0:
         return r0.returncode
 
-    print("== 前端测试（契约 / 路由 / 排序 / 纠错规则 / 写失败原子性）==")
+    print("== 前端测试（契约 / 路由 / 排序 / 纠错规则 / 复活规则 / 写失败原子性）==")
     node = os.environ.get("RRA_NODE", "node")
     for name in ("contract-parity.mjs", "route-roundtrip.mjs", "sort-order.mjs",
-                 "refutation-rule-parity.mjs", "store-commit-safety.mjs", "workbench.mjs"):
+                 "refutation-rule-parity.mjs", "resurrection-rule-parity.mjs",
+                 "store-commit-safety.mjs", "workbench.mjs"):
         r = subprocess.run([node, str(ROOT / "web" / "tests" / name)],
                            cwd=ROOT, env=env)
         if r.returncode != 0:

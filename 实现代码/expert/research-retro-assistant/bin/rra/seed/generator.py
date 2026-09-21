@@ -2,13 +2,18 @@
 
 硬约束（附录 D.6）：必须预留 1–2 条「已放弃且阻塞点明确」的记录，
 否则死实验复活（S2）到演示时无法呈现。
+
+另外两条演示硬约束（本文件的自检会守住）：
+- 至少有一条记录带 `resurrection.unblocks`，否则「可重试方向」只有空态；
+- 至少有一条记录带 `challenge.challenges`，否则立项检查看不到专家质询。
 """
 
 from dataclasses import dataclass, field
 
 from ..contracts.dims import Dim
 from ..contracts.models import (
-    Archive, Artifact, Attribution, DimDelta, DimValue, EvidenceRef, Link, Provenance,
+    Archive, Artifact, Attribution, Challenge, DimDelta, DimValue, EvidenceRef, Link,
+    Provenance, Unblock,
 )
 
 
@@ -16,7 +21,7 @@ from ..contracts.models import (
 class SeedPlan:
     """造数据计划：方向、条数、阻塞点分布、必须埋的伏笔。"""
 
-    total: int = 14
+    total: int = 15
     abandoned_with_blocker: int = 2
     same_blocker_cluster: int = 3
 
@@ -94,6 +99,13 @@ _SEEDS = [
                     diff=[("seq_len", "512", "4096")],
                     transferable="R-004 的做法只对激活主导的显存压力有效，对注意力矩阵开销无效")],
         missing_info=["4096 下 flash-attention 是否开启"],
+        # 审稿人 2 号（附录 D.1 的 D5）：专家针对该方向写回的质询，每条必须带证据编号。
+        # 「这个方向已有几次记录」这类计数由网页自己算，这里只放专家的语义判断。
+        challenge=[dict(
+            text="同一阻塞点已有 4 条记录，其中 3 条结论仍是假设，且都没有说明是否启用 flash-attention。"
+                 "请先给出本次与前几次在条件上的差异，再谈预期。",
+            evidence_ids=["R-001", "R-002", "R-005"],
+        )],
         author="模拟·王同学", date="2026-08-02",
     ),
     # ---- C 线：已放弃的尝试（死实验复活的伏笔，R-006/007）----
@@ -198,6 +210,32 @@ _SEEDS = [
         missing_info=["作者的后处理代码"],
         author="模拟·王同学", date="2026-09-01",
     ),
+    # ---- E 线：解除 R-006 阻塞点的新记录（死实验复活的演示材料，S2）----
+    # 注意：它只解除了一部分（权重与优化器放下了，长序列激活仍超限）。
+    # 演示时要如实说"部分解除"——把部分解除说成完全解除，正是这类系统最致命的失效。
+    dict(
+        id="R-015", attempt="int8 量化加载 70B 基座 + 8-bit 优化器状态，再跑 LoRA 长文本",
+        expectation="权重与优化器状态都压到 24G 单卡放得下，从而解掉 R-006 的阻塞点",
+        observation="int8 加载后基座权重降到约 18G，8-bit 优化器状态约 3G，24G 单卡可启动；"
+                    "8192 序列下激活仍超限",
+        blocker="量化加载后长序列激活值仍超 24G",
+        attribution=("权重与优化器已不再是瓶颈，瓶颈转移到长序列激活", "observed"),
+        boundary="单卡 24G、int8 基座 + 8-bit 优化器；seq_len=8192 时激活仍超限",
+        conditions=dict(model="70B（型号未提供）", seq_len="8192", precision="int8 基座 + 8-bit 优化器",
+                        hardware="单卡 24G", stage="LoRA 微调"),
+        confidence="medium", status="进行中",
+        links=[dict(target="R-006", relation="相似",
+                    same=[("model", "70B（型号未提供）"), ("seq_len", "8192")],
+                    diff=[("precision", "未量化", "int8 基座 + 8-bit 优化器")],
+                    transferable="量化加载解掉了「权重与优化器放不下」这一层；"
+                                 "对长序列激活开销无效（与 R-005 的结论方向一致）")],
+        resurrection=[dict(
+            record="R-006", basis="R-015",
+            quote="int8 加载后基座权重降到约 18G，8-bit 优化器状态约 3G，24G 单卡可启动",
+        )],
+        missing_info=["8192 下叠加梯度检查点能否把激活压到 24G 以内"],
+        author="模拟·李师兄", date="2026-09-05",
+    ),
 ]
 
 
@@ -231,6 +269,10 @@ def _build(seed: dict) -> Archive:
         artifacts=[Artifact(kind=k, ref=r) for k, r in seed.get("artifacts", [])],
         links=links,
         evidence_refs=[EvidenceRef(record=rid, quote=q) for rid, q in seed.get("evidence", [])],
+        resurrection=[Unblock(record=u["record"], basis=u["basis"], quote=u["quote"])
+                      for u in seed.get("resurrection", [])],
+        challenge=[Challenge(text=c["text"], evidence_ids=list(c["evidence_ids"]))
+                   for c in seed.get("challenge", [])],
     )
 
 
@@ -245,7 +287,7 @@ class SeedGenerator:
         return [_build(s).to_dict() for s in _SEEDS[: self.plan.total]]
 
     def check_plan(self, records: list[dict]) -> list[str]:
-        """自检：伏笔是否埋够、同阻塞点簇是否存在、来源标注是否齐全。"""
+        """自检：伏笔是否埋够、同阻塞点簇是否存在、来源标注是否齐全、两个创新点是否有料可演。"""
         issues: list[str] = []
         abandoned = [r for r in records if r.get("status") == "已放弃" and r.get("blocker", "").strip()]
         if len(abandoned) < self.plan.abandoned_with_blocker:
@@ -260,4 +302,9 @@ class SeedGenerator:
         for r in records:
             if r.get("provenance", {}).get("source") != "模拟":
                 issues.append("%s 的来源不是「模拟」" % r.get("id"))
+        # 两个第一梯队创新点必须各有演示材料，否则界面上只有空态。
+        if not any((r.get("resurrection") or {}).get("unblocks") for r in records):
+            issues.append("没有任何记录标注「解除依据」——可重试方向（S2）在界面上只有空态")
+        if not any((r.get("challenge") or {}).get("challenges") for r in records):
+            issues.append("没有任何记录带专家质询——立项检查的主动质询（D5）看不到内容")
         return issues

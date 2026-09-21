@@ -62,7 +62,8 @@ const REQUIRED_TOP = ["id", "attempt", "expectation", "observation", "blocker",
   "attribution", "boundary", "confidence", "status", "provenance"];
 const ALLOWED_TOP = new Set(["id", "attempt", "expectation", "observation", "blocker",
   "attribution", "missing_info", "boundary", "confidence", "status", "artifacts",
-  "links", "evidence_refs", "dedup_key", "version", "provenance", "conditions"]);
+  "links", "evidence_refs", "dedup_key", "version", "provenance", "conditions",
+  "resurrection", "challenge"]);
 const STRING_REQUIRED = ["id", "attempt", "expectation", "observation", "blocker", "boundary"];
 const SOURCES = ["真实", "模拟"];
 
@@ -89,6 +90,14 @@ export class ContractValidator {
         if (!DIMS.includes(dim))out.push({path:'conditions.'+dim,reason:'条件维度不合法',expected:'九维枚举'});
         if (typeof value !== 'string' || !value.length)out.push({path:'conditions.'+dim,reason:'条件取值不合法',expected:'非空字符串'});
       }
+    }
+    // 死实验复活（S2）与审稿人 2 号（D5）：档案侧各带一个可选对象。
+    // 形状检查在这里，跨档案检查放在 validateLibrary —— 与 Python 侧一一对应。
+    if (raw.resurrection !== undefined && raw.resurrection !== null) {
+      out.push(...this.checkResurrection(raw.resurrection));
+    }
+    if (raw.challenge !== undefined && raw.challenge !== null) {
+      out.push(...this.checkChallenge(raw.challenge));
     }
     for (const key of STRING_REQUIRED) {
       const v = raw[key];
@@ -186,6 +195,72 @@ export class ContractValidator {
     return out;
   }
 
+  /** resurrection：unblocks[] 的 record/basis 必须是 R-###，quote 必须够长可复核。 */
+  checkResurrection(raw) {
+    const out = [];
+    if (!isPlainObject(raw)) return [{ path: "resurrection", reason: "不是对象", expected: "object" }];
+    if (raw.unblocks === undefined || raw.unblocks === null) return out;
+    if (!Array.isArray(raw.unblocks)) {
+      return [{ path: "resurrection.unblocks", reason: "不是列表", expected: "list" }];
+    }
+    raw.unblocks.forEach((item, i) => {
+      const base = `resurrection.unblocks[${i}]`;
+      if (!isPlainObject(item)) {
+        out.push({ path: base, reason: "元素不是对象", expected: "object" });
+        return;
+      }
+      for (const [key, label] of [["record", "被解除的档案编号"], ["basis", "解除依据的档案编号"]]) {
+        if (!ID_RE.test(item[key] === undefined || item[key] === null ? "" : String(item[key]))) {
+          out.push({ path: base + "." + key, reason: label + "格式不合法", expected: "R-###" });
+        }
+      }
+      if (typeof item.quote !== "string") {
+        out.push({ path: base + ".quote", reason: "原文片段不是字符串", expected: "string" });
+      } else if (item.quote.length < QUOTE_MIN) {
+        out.push({
+          path: base + ".quote", reason: "原文片段过短，无法复核",
+          expected: `至少 ${QUOTE_MIN} 个字符的原文摘录`,
+        });
+      }
+    });
+    return out;
+  }
+
+  /** challenge：每条质询必须有非空的 evidence_ids，且每项都是 R-###（见 reviewer2.is_grounded）。 */
+  checkChallenge(raw) {
+    const out = [];
+    if (!isPlainObject(raw)) return [{ path: "challenge", reason: "不是对象", expected: "object" }];
+    if (raw.challenges === undefined || raw.challenges === null) return out;
+    if (!Array.isArray(raw.challenges)) {
+      return [{ path: "challenge.challenges", reason: "不是列表", expected: "list" }];
+    }
+    raw.challenges.forEach((item, i) => {
+      const base = `challenge.challenges[${i}]`;
+      if (!isPlainObject(item)) {
+        out.push({ path: base, reason: "元素不是对象", expected: "object" });
+        return;
+      }
+      if (typeof item.text !== "string" || !item.text.trim()) {
+        out.push({ path: base + ".text", reason: "质询内容为空", expected: "非空字符串" });
+      }
+      if (!Array.isArray(item.evidence_ids) || item.evidence_ids.length === 0) {
+        out.push({
+          path: base + ".evidence_ids", reason: "缺少证据编号（无出处的质询不得进库）",
+          expected: "至少一个 R-### 编号",
+        });
+        return;
+      }
+      item.evidence_ids.forEach((one, j) => {
+        if (typeof one !== "string" || !ID_RE.test(one)) {
+          out.push({
+            path: `${base}.evidence_ids[${j}]`, reason: "证据编号格式不合法", expected: "R-###",
+          });
+        }
+      });
+    });
+    return out;
+  }
+
   validateLibrary(raw) {
     if (!raw || !Array.isArray(raw.records)) {
       return [{ path: "records", reason: "缺少档案列表", expected: "array" }];
@@ -227,6 +302,36 @@ export class ContractValidator {
             path: `records[${i}].evidence_refs[${j}].quote`,
             reason: "引文在被引用档案里找不到（不可复核）",
             expected: `该档案的 ${QUOTABLE_FIELDS.join(" / ")} 中真实存在的原文片段`,
+          });
+        }
+      });
+      // 死实验复活的解除依据同样必须可复核：依据指向的档案要存在，
+      // 且 quote 必须能在**依据档案**里找到（与 evidence_refs 同一铁律）。
+      const unblocks = isPlainObject(rec.resurrection) ? asList(rec.resurrection.unblocks) : [];
+      unblocks.forEach((item, j) => {
+        if (!isPlainObject(item)) return;   // 元素类型问题由 validateArchive 报出
+        const unblocked = item.record === undefined || item.record === null ? "" : String(item.record);
+        const basis = item.basis === undefined || item.basis === null ? "" : String(item.basis);
+        if (unblocked && !ids.has(unblocked)) {
+          out.push({
+            path: `records[${i}].resurrection.unblocks[${j}].record`,
+            reason: "被解除的档案不存在", expected: "指向库内编号之一",
+          });
+        }
+        if (basis && !ids.has(basis)) {
+          out.push({
+            path: `records[${i}].resurrection.unblocks[${j}].basis`,
+            reason: "解除依据的档案不存在", expected: "指向库内编号之一",
+          });
+          return;
+        }
+        const basisRec = byId.get(basis);
+        if (!basisRec || typeof item.quote !== "string" || !item.quote.trim()) return;
+        if (!quoteMatches(item.quote, basisRec)) {
+          out.push({
+            path: `records[${i}].resurrection.unblocks[${j}].quote`,
+            reason: "解除依据的引文在依据档案里找不到（不可复核）",
+            expected: `依据档案的 ${QUOTABLE_FIELDS.join(" / ")} 中真实存在的原文片段`,
           });
         }
       });

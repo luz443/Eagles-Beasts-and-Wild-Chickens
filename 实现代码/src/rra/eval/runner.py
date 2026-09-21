@@ -9,7 +9,8 @@
 
 命中判据无法凭空推断，所以按 **显式的按类型规则表**（`HIT_EXPECTATION`）决定：
 规则表里写 `None` 的类型表示"判据是语义性的，当前不计通过"，宁可标成待人工，也不假装判过。
-新增 CaseKind 必须同时在规则表里给出决定，否则 `tests/test_eval_integrity.py` 会失败。
+新增 CaseKind 必须同时在规则表里给出决定，否则
+`tests/test_runner.py::TestJudge::test_every_case_kind_has_an_explicit_decision` 会失败。
 """
 
 from dataclasses import dataclass, field

@@ -87,7 +87,7 @@ class TestEvidenceQuoteVerification(unittest.TestCase):
             archive("R-001"), one])), [])
 
     def test_seed_library_quotes_are_all_verifiable(self):
-        """真实种子库自检：14 条记录里每一处 evidence_refs 都必须能在目标档案中找到原文。"""
+        """真实种子库自检：15 条记录里每一处 evidence_refs 都必须能在目标档案中找到原文。"""
         import json
         from pathlib import Path
         seed = Path(__file__).resolve().parents[1] / "data" / "library.seed.json"

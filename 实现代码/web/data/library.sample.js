@@ -209,6 +209,18 @@ export const SAMPLE_LIBRARY = {
         "model": "Llama-3-8B",
         "micro_batch": "4",
         "batch": "32（等效）"
+      },
+      "challenge": {
+        "challenges": [
+          {
+            "text": "同一阻塞点已有 4 条记录，其中 3 条结论仍是假设，且都没有说明是否启用 flash-attention。请先给出本次与前几次在条件上的差异，再谈预期。",
+            "evidence_ids": [
+              "R-001",
+              "R-002",
+              "R-005"
+            ]
+          }
+        ]
       }
     },
     {
@@ -468,6 +480,72 @@ export const SAMPLE_LIBRARY = {
         "author": "模拟·王同学",
         "date": "2026-09-01",
         "source": "模拟"
+      }
+    },
+    {
+      "id": "R-015",
+      "attempt": "int8 量化加载 70B 基座 + 8-bit 优化器状态，再跑 LoRA 长文本",
+      "expectation": "权重与优化器状态都压到 24G 单卡放得下，从而解掉 R-006 的阻塞点",
+      "observation": "int8 加载后基座权重降到约 18G，8-bit 优化器状态约 3G，24G 单卡可启动；8192 序列下激活仍超限",
+      "blocker": "量化加载后长序列激活值仍超 24G",
+      "attribution": {
+        "text": "权重与优化器已不再是瓶颈，瓶颈转移到长序列激活",
+        "type": "observed"
+      },
+      "missing_info": [
+        "8192 下叠加梯度检查点能否把激活压到 24G 以内"
+      ],
+      "boundary": "单卡 24G、int8 基座 + 8-bit 优化器；seq_len=8192 时激活仍超限",
+      "confidence": "medium",
+      "status": "进行中",
+      "artifacts": [],
+      "links": [
+        {
+          "target": "R-006",
+          "relation": "相似",
+          "same": [
+            {
+              "dim": "model",
+              "value": "70B（型号未提供）"
+            },
+            {
+              "dim": "seq_len",
+              "value": "8192"
+            }
+          ],
+          "diff": [
+            {
+              "dim": "precision",
+              "from": "未量化",
+              "to": "int8 基座 + 8-bit 优化器"
+            }
+          ],
+          "transferable": "量化加载解掉了「权重与优化器放不下」这一层；对长序列激活开销无效（与 R-005 的结论方向一致）"
+        }
+      ],
+      "evidence_refs": [],
+      "dedup_key": "",
+      "version": 1,
+      "provenance": {
+        "author": "模拟·李师兄",
+        "date": "2026-09-05",
+        "source": "模拟"
+      },
+      "conditions": {
+        "model": "70B（型号未提供）",
+        "seq_len": "8192",
+        "precision": "int8 基座 + 8-bit 优化器",
+        "hardware": "单卡 24G",
+        "stage": "LoRA 微调"
+      },
+      "resurrection": {
+        "unblocks": [
+          {
+            "record": "R-006",
+            "basis": "R-015",
+            "quote": "int8 加载后基座权重降到约 18G，8-bit 优化器状态约 3G，24G 单卡可启动"
+          }
+        ]
       }
     }
   ]

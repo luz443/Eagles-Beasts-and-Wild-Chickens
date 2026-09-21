@@ -300,6 +300,9 @@ main { padding-top: var(--sp-5); }
 .badge.attr-observed { border-color: var(--ok); background: var(--ok-bg); color: var(--ok); }
 .badge.attr-assumption { border-color: var(--warn); background: var(--warn-bg); color: var(--warn); border-style: dashed; }
 
+/* 解除依据：只在「可重试方向」里用，表示专家已写回带编号的证据（不是"可以照搬"的判决） */
+.badge.ok { border-color: var(--ok); background: var(--ok-bg); color: var(--ok); }
+
 /* ==========================================================================
  * 7. 表格 —— 条件对比矩阵与档案字段表
  * ========================================================================= */
@@ -606,6 +609,11 @@ input[type="date"] { padding: var(--sp-2); font: inherit; border: 1px solid var(
 .drawer-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--sp-5); }
 .drawer-top .eyebrow { margin: 0; }
 blockquote { margin: var(--sp-4) 0; padding: var(--sp-3) var(--sp-4); border-left: var(--rail) solid var(--accent); background: var(--paper); }
+/* 主动质询（审稿人 2 号）：整块用朱砂左轨强调——它是立项检查里唯一"请先别急着开工"的声音 */
+.challenge { border-left: var(--rail) solid var(--accent); }
+.challenge-ask { font-family: var(--font-display); font-size: var(--fs-lg); line-height: 1.6; }
+.challenge-list { margin: var(--sp-3) 0 0; padding-left: var(--sp-5); }
+.challenge-list li { margin-bottom: var(--sp-3); }
 .drawer-actions { margin-top: var(--sp-6); padding-top: var(--sp-4); border-top: 1px solid var(--rule); }
 footer.foot { margin-top: var(--sp-7); }
 .card, .hero-thread, .field, .two-col > *, .view { min-width: 0; }

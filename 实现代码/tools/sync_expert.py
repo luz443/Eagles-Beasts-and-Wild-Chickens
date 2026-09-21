@@ -1,6 +1,10 @@
 """把仓库同步进专家包，并把专家包镜像回仓库（双向，但单一真源是仓库）。
 
-用法：python tools/sync_expert.py [--check]
+用法：python tools/sync_expert.py [--check [--platform]] [--mirror-only]
+
+本机没有安装平台包时（团队成员、评委、CI 环境），用 `--mirror-only`：
+它只刷新仓库镜像 `expert/<name>/` 里的**生成物**，手写文件（agents/、SKILL.md、
+plugin.json、README.md）保持不动 —— 不要求先装平台包再把文件搬一次。
 
 单一真源（仓库） → 生成物（专家包）：
     src/rra/**                    → <pkg>/bin/rra/**
@@ -67,19 +71,19 @@ def py_digest(root: Path) -> str:
     return h.hexdigest()
 
 
-def sync_generated(log):
-    """仓库 → 包：引擎、CLI、提示词、契约、样例。"""
-    if (PKG / "bin" / "rra").exists():
-        shutil.rmtree(PKG / "bin" / "rra")
-    shutil.copytree(REPO / "src" / "rra", PKG / "bin" / "rra",
+def sync_generated(log, target: Path):
+    """仓库 → 目标包：引擎、CLI、提示词、契约、样例。"""
+    if (target / "bin" / "rra").exists():
+        shutil.rmtree(target / "bin" / "rra")
+    shutil.copytree(REPO / "src" / "rra", target / "bin" / "rra",
                     ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
     log.append("bin/rra/  ← src/rra/（%d 个文件）"
-               % sum(1 for p in (PKG / "bin" / "rra").rglob("*") if p.is_file()))
+               % sum(1 for p in (target / "bin" / "rra").rglob("*") if p.is_file()))
 
-    shutil.copyfile(REPO / "tools" / "rra_cli.py", PKG / "bin" / "rra_cli.py")
+    shutil.copyfile(REPO / "tools" / "rra_cli.py", target / "bin" / "rra_cli.py")
     log.append("bin/rra_cli.py ← tools/rra_cli.py")
 
-    samples = PKG / "bin" / "samples"
+    samples = target / "bin" / "samples"
     (samples / "contracts").mkdir(parents=True, exist_ok=True)
     shutil.copyfile(REPO / "data" / "library.seed.json", samples / "library.seed.json")
     for f in sorted((REPO / "contracts").glob("*.json")):
@@ -87,7 +91,7 @@ def sync_generated(log):
     log.append("bin/samples/ ← data/ + contracts/")
 
     for prompt, skill in SKILL_OF_PROMPT.items():
-        ref = PKG / "skills" / skill / "references"
+        ref = target / "skills" / skill / "references"
         ref.mkdir(parents=True, exist_ok=True)
         src = REPO / "prompts" / prompt
         if not src.exists():
@@ -107,12 +111,12 @@ def sync_generated(log):
     manifest = {
         "source_repo": str(REPO),
         "note": "bin/rra、bin/samples、skills/*/references、bin/rra_cli.py 为生成物；改仓库后重跑本脚本。",
-        "engine_digest": py_digest(PKG / "bin" / "rra"),
+        "engine_digest": py_digest(target / "bin" / "rra"),
         "repo_engine_digest": py_digest(REPO / "src" / "rra"),
-        "cli_digest": sha256_of(PKG / "bin" / "rra_cli.py"),
+        "cli_digest": sha256_of(target / "bin" / "rra_cli.py"),
         "repo_cli_digest": sha256_of(REPO / "tools" / "rra_cli.py"),
     }
-    (PKG / "bin" / "SYNC.json").write_text(
+    (target / "bin" / "SYNC.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return manifest
 
@@ -136,6 +140,8 @@ def main() -> int:
     ap.add_argument("--check", action="store_true", help="只比对摘要，不写文件")
     ap.add_argument("--platform", action="store_true",
                     help="与 --check 连用：比对本机已安装的平台包（默认比对仓库镜像）")
+    ap.add_argument("--mirror-only", action="store_true",
+                    help="只刷新仓库镜像 expert/<name>/ 的生成物（本机没装平台包时用这条）")
     args = ap.parse_args()
 
     log = []
@@ -163,12 +169,26 @@ def main() -> int:
         print("\n".join(log))
         return 0 if (pkg_d == repo_d and cli_same) else 1
 
+    if args.mirror_only:
+        # 没有平台包时也要能收口：镜像里的手写文件（agents/、SKILL.md、plugin.json）保留不动，
+        # 只把**生成物**按仓库重刷一遍。团队成员与评委拿到仓库即可安装，不必先装平台包。
+        if not (MIRROR / ".codebuddy-plugin" / "plugin.json").exists():
+            log.append("仓库镜像不存在或未初始化：%s" % MIRROR)
+            print("\n".join(log))
+            return 1
+        manifest = sync_generated(log, MIRROR)
+        log.append("镜像生成物已刷新；引擎摘要一致（镜像 == 仓库）：%s"
+                   % (manifest["engine_digest"] == manifest["repo_engine_digest"]))
+        print("\n".join(log))
+        return 0 if manifest["engine_digest"] == manifest["repo_engine_digest"] else 1
+
     if not (PKG / ".codebuddy-plugin" / "plugin.json").exists():
-        log.append("专家包不存在或未初始化：%s" % PKG)
+        log.append("专家包不存在或未初始化：%s\n"
+                   "  → 本机没装平台包时，可用 --mirror-only 只刷新仓库镜像。" % PKG)
         print("\n".join(log))
         return 1
 
-    manifest = sync_generated(log)
+    manifest = sync_generated(log, PKG)
     sync_mirror(log)
     log.append("引擎摘要一致（包内 == 仓库）：%s"
                % (manifest["engine_digest"] == manifest["repo_engine_digest"]))

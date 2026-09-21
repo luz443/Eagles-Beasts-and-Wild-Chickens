@@ -130,6 +130,70 @@ class EvidenceRef:
 
 
 @dataclass
+class Unblock:
+    """死实验复活（设计方案附录 D.1 的 S2）：本条记录解除了哪条已放弃记录的阻塞点。
+
+    `record` 是被解除的那条（通常是「已放弃且阻塞点非空」的档案）；
+    `basis` 是解除依据所在的档案编号，`quote` 必须能在 `basis` 指向的档案里复核到——
+    与 `evidence_refs` 同一条铁律：没有出处的判断不许出现在输出里。
+    """
+
+    record: str
+    basis: str
+    quote: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"record": self.record, "basis": self.basis, "quote": self.quote}
+
+    @classmethod
+    def from_dict(cls, raw: dict[str, Any]) -> "Unblock":
+        return cls(record=raw["record"], basis=raw["basis"], quote=raw["quote"])
+
+
+@dataclass
+class Challenge:
+    """审稿人 2 号（设计方案附录 D.1 的 D5）：针对某个方向的主动质询。
+
+    `evidence_ids` 必须非空且每一项都是 `R-###`；没有证据编号的质询一律不进库。
+    规则的唯一真源在 `skills/reviewer2.py::is_grounded`，两端各有一个测试盯着它。
+    """
+
+    text: str
+    evidence_ids: list[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"text": self.text, "evidence_ids": list(self.evidence_ids)}
+
+    @classmethod
+    def from_dict(cls, raw: dict[str, Any]) -> "Challenge":
+        return cls(text=raw["text"], evidence_ids=list(raw.get("evidence_ids", [])))
+
+
+def _unblocks_of(raw: Any) -> list[Unblock]:
+    """解析可选 resurrection：形状不对时如实报错，不做静默兜底。"""
+    if raw is None:
+        return []
+    if not isinstance(raw, dict):
+        raise ValueError("resurrection 必须是对象")
+    items = raw.get("unblocks", [])
+    if not isinstance(items, list):
+        raise ValueError("resurrection.unblocks 必须是列表")
+    return [Unblock.from_dict(x) for x in items]
+
+
+def _challenges_of(raw: Any) -> list[Challenge]:
+    """解析可选 challenge：形状不对时如实报错，不做静默兜底。"""
+    if raw is None:
+        return []
+    if not isinstance(raw, dict):
+        raise ValueError("challenge 必须是对象")
+    items = raw.get("challenges", [])
+    if not isinstance(items, list):
+        raise ValueError("challenge.challenges 必须是列表")
+    return [Challenge.from_dict(x) for x in items]
+
+
+@dataclass
 class Provenance:
     """来源信息。source 只允许 真实 / 模拟；导入冲突重编号时记录 remap_from。"""
 
@@ -171,6 +235,8 @@ class Archive:
     dedup_key: str = ""
     version: int = 1
     conditions: dict[str, str] = field(default_factory=dict)
+    resurrection: list[Unblock] = field(default_factory=list)
+    challenge: list[Challenge] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         out = {
@@ -193,6 +259,11 @@ class Archive:
         }
         if self.conditions:
             out["conditions"] = dict(self.conditions)
+        # 与 conditions 同一约定：为空即不输出，保证历史档案的往返结果不变
+        if self.resurrection:
+            out["resurrection"] = {"unblocks": [u.to_dict() for u in self.resurrection]}
+        if self.challenge:
+            out["challenge"] = {"challenges": [c.to_dict() for c in self.challenge]}
         return out
 
     @classmethod
@@ -215,6 +286,8 @@ class Archive:
             dedup_key=raw.get("dedup_key", ""),
             version=int(raw.get("version", 1)),
             conditions={_to_dim(key).value: value for key, value in raw.get("conditions", {}).items()},
+            resurrection=_unblocks_of(raw.get("resurrection")),
+            challenge=_challenges_of(raw.get("challenge")),
         )
 
     def citation(self) -> str:

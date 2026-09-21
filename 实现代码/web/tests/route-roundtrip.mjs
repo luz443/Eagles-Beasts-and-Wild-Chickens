@@ -4,7 +4,7 @@
  */
 import { parseHash, routeToHash, sameParams } from "../js/route.js";
 
-const VIEWS = ["library", "detail", "map", "projectCheck", "compareMatrix", "incubation"];
+const VIEWS = ["library", "detail", "map", "projectCheck", "compareMatrix", "incubation", "resurrection"];
 
 let passed = 0;
 let failed = 0;
@@ -23,6 +23,8 @@ const cases = [
   ["map", {}],
   ["compareMatrix", {}],
   ["incubation", {}],
+  ["resurrection", {}],
+  ["resurrection", { blocker: "长序列训练显存不足" }],
   ["detail", { id: "R-003" }],
 ];
 for (const [name, params] of cases) {

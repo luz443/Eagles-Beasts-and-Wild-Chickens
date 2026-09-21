@@ -1,6 +1,6 @@
 {
   "_note": "由 tools/make_contract_parity.py 从 Python 校验器生成；run_tests.py 会自动重建。",
-  "_generated_at": "2026-09-20T13:05:36",
+  "_generated_at": "2026-09-20T21:14:30",
   "dims": [
     "model",
     "seq_len",
@@ -13,6 +13,11 @@
     "framework"
   ],
   "fixtures": {
+    "invalid_challenge_ungrounded.json": [
+      "challenge.challenges[0].evidence_ids",
+      "challenge.challenges[1].evidence_ids[0]",
+      "challenge.challenges[2].text"
+    ],
     "invalid_conditions.json": [
       "conditions.seq_len",
       "conditions.bad",
@@ -40,8 +45,14 @@
     "invalid_quote_too_short.json": [
       "evidence_refs[0].quote"
     ],
+    "invalid_resurrection_shape.json": [
+      "resurrection.unblocks[0].record",
+      "resurrection.unblocks[0].quote",
+      "resurrection.unblocks[1].basis"
+    ],
     "valid_conditions.json": [],
-    "valid_record.json": []
+    "valid_record.json": [],
+    "valid_resurrection.json": []
   },
   "dedup_samples": [
     {

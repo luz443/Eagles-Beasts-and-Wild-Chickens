@@ -105,6 +105,10 @@ class CaseRegistry:
     def blind_cases(self) -> list[Case]:
         return [c for c in self.cases if c.blind]
 
+    def all_cases(self) -> list[Case]:
+        """全部用例（盲测 + 开放）。开放与盲测必须构成一次不重不漏的划分。"""
+        return list(self.cases)
+
     def get(self, no: int) -> Case:
         for c in self.cases:
             if c.no == no:

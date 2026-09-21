@@ -1,17 +1,38 @@
+# ---- 缓存与虚拟环境 ----
 __pycache__/
 *.py[cod]
 .pytest_cache/
 .venv/
 venv/
 node_modules/
+
+# ---- 编辑器与系统 ----
 .idea/
 .vscode/
-.learnbuddy/
-.workbuddy/
 .DS_Store
 Thumbs.db
 ~$*
+
+# ---- 工具本地目录 ----
+.learnbuddy/
+.workbuddy/
+
+# ---- 环境变量 ----
 .env
 .env.*
 !.env.example
+
+# ---- 本地试跑产物 ----
+# 注意：实际命名是「<日期>-local.json」（连字符），不是「xxx.local.json」（点）。
+# 2026-09-20 之前这里只写了 *.local.json，与真实文件名永远匹配不上，
+# 于是占位跑批的结果被提交进了公开仓库。两种写法都保留，避免再踩。
+*-local.json
 *.local.json
+*-placeholder-*.json
+
+# ---- 参考文献原文副本 ----
+# 出版方文件再分发有版权问题，见 参考文献/原文存档/README.md。
+参考文献/原文存档/*.pdf
+
+# ---- 发布 / 构建快照 ----
+*.zip

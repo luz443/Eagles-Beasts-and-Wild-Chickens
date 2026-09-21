@@ -8,6 +8,7 @@
  *   #/library                                          经验库（默认）
  *   #/library?q=显存&status=进行中&sort=confidence      库内状态：检索词 / 状态 / 排序
  *   #/projectCheck | #/map | #/compareMatrix | #/incubation
+ *   #/resurrection?blocker=长序列训练显存不足            可重试方向：只看该阻塞点
  *   #/detail/R-003                                     档案详情：深链到某一条档案
  *
  * 本模块是纯函数：不碰 DOM、不碰 history，可以在 Node 里直接测。

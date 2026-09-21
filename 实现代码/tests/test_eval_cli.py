@@ -82,5 +82,41 @@ class TestEvalCliDiscipline(unittest.TestCase):
             self.assertIn("盲测守门通过", r4.stdout)
 
 
+    def test_prompts_dir_freezes_the_whole_set(self):
+        """六个技能提示词必须能一次冻结；之后改**任意一份**都要被拦下。
+
+        这是旧实现的漏洞：`--create-freeze` 只吃一个 `--prompt`，
+        冻结了 induction.md 就等于放行另外五份规则。
+        """
+        with tempfile.TemporaryDirectory() as d:
+            prompts = Path(d) / "prompts"
+            prompts.mkdir()
+            (prompts / "extract.md").write_text("抽取规则 v1", encoding="utf-8")
+            (prompts / "induction.md").write_text("归纳规则 v1", encoding="utf-8")
+            (prompts / "notes.txt").write_text("不是提示词，不该被纳入", encoding="utf-8")
+            freeze = Path(d) / "freeze.json"
+
+            r1 = run("--create-freeze", str(freeze), "--prompts-dir", str(prompts),
+                     "--version", "v1.0-frozen", "--by", "测试")
+            self.assertEqual(r1.returncode, 0, r1.stdout + r1.stderr)
+            rec = json.loads(freeze.read_text(encoding="utf-8"))
+            self.assertEqual(2, len(rec["prompt_hashes"]), "只应纳入 *.md")
+            self.assertEqual("v1.0-frozen", rec["prompt_version"])
+            self.assertEqual(64, len(rec["prompt_hash"]))
+
+            # 动第二份（不是第一份）——旧的单份口径会放行
+            (prompts / "induction.md").write_text("归纳规则 v2（改过了）", encoding="utf-8")
+            r2 = run("--blind", "--freeze", str(freeze), "--placeholder")
+            self.assertEqual(r2.returncode, 1, r2.stdout + r2.stderr)
+            self.assertIn("冻结后被改动", r2.stdout + r2.stderr)
+            self.assertIn("induction.md", r2.stdout + r2.stderr)
+
+    def test_create_freeze_without_prompt_exits_one(self):
+        with tempfile.TemporaryDirectory() as d:
+            r = run("--create-freeze", str(Path(d) / "f.json"))
+            self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+            self.assertIn("--prompt", r.stdout + r.stderr)
+
+
 if __name__ == "__main__":
     unittest.main()

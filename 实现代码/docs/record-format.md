@@ -30,6 +30,16 @@
 | `evidence_refs[]` | `{ "record": "R-008", "quote": string }`——引用必须带原文片段 |
 | `artifacts[]` | `{ "kind": "code" | "data" | "log", "ref": string }` |
 | `dedup_key` | 归一化「尝试 + 阻塞点 + 关键条件」的指纹，用于导入去重 |
+| `resurrection`（可选） | `{ "unblocks": [ { "record", "basis", "quote" } ] }`——本条记录解除了哪条**已放弃**记录的阻塞点；`quote` 必须能在 `basis` 指向的档案里逐字复核到 |
+| `challenge`（可选） | `{ "challenges": [ { "text", "evidence_ids": ["R-###"] } ] }`——专家质询；`evidence_ids` 必须非空且每项合法，否则整条不得进库 |
+
+> **`conditions` 与 `links[].same/diff` 不是同一样东西，不能互相替代。**
+> `conditions` 是**这条档案自己的**实验条件：它是条件比较门禁（`condition_compare` 技能）
+> 在判定时刻的输入，也是网页条件对比矩阵的对位依据。
+> `links[].same/diff` 是**专家已经作出的判定结果**（两条档案在哪些维度相同 / 不同），
+> 属于结论而不是输入。
+> 所以「矩阵读 `links`、门禁读 `conditions`」是刻意的分工，不是同源缺陷
+> （外部审查曾把它记作待办，此处为该结论的口径说明）。
 
 ## 维度枚举（`dim`）
 

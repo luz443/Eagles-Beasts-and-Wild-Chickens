@@ -12,6 +12,7 @@ import { MapView } from "./views/map.js";
 import { ProjectCheckView } from "./views/projectCheck.js";
 import { CompareMatrixView } from "./views/compareMatrix.js";
 import { IncubationView } from "./views/incubation.js";
+import { ResurrectionView } from "./views/resurrection.js";
 import { toast } from "./ui/toast.js";
 import { parseHash, routeToHash } from "./route.js";
 import { VerificationStore } from './verification.js';
@@ -26,6 +27,7 @@ const VIEWS = {
   projectCheck: ProjectCheckView,
   compareMatrix: CompareMatrixView,
   incubation: IncubationView,
+  resurrection: ResurrectionView,
 };
 
 export class App {
@@ -153,7 +155,7 @@ export class App {
     this.mounting=true;
     try { await this.current.mount(this.root, params); } finally { this.mounting=false; }
     this.syncHash(name, this.currentParams, !!opts.replace);
-    document.title='研究复盘助手 · '+({library:'研究证据工作台',projectCheck:'立项检查',map:'失败地图',compareMatrix:'条件对比',incubation:'孵化清单',detail:'档案详情'}[name]||'');
+    document.title='研究复盘助手 · '+({library:'研究证据工作台',projectCheck:'立项检查',map:'失败地图',compareMatrix:'条件对比',incubation:'孵化清单',resurrection:'可重试方向',detail:'档案详情'}[name]||'');
     if(!opts.replace || opts.navigate) { window.scrollTo({top:0,behavior:'instant'}); this.root.focus({preventScroll:true}); }
   }
 

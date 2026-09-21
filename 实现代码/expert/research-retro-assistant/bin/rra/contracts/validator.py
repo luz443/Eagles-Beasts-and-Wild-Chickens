@@ -28,6 +28,7 @@ _ALLOWED_TOP = {
     "id", "attempt", "expectation", "observation", "blocker", "attribution",
     "missing_info", "boundary", "confidence", "status", "artifacts", "links",
     "evidence_refs", "dedup_key", "version", "provenance", "conditions",
+    "resurrection", "challenge",
 }
 # 与 record.schema.json 的 minLength: 1 对齐，按**原串**长度判（不 trim），
 # 避免「schema 按原串、校验器按 trim」造成的两端漂移。
@@ -164,6 +165,74 @@ class Validator:
                     base + ".quote", "原文片段过短，无法复核",
                     "至少 %d 个字符的原文摘录" % _QUOTE_MIN))
 
+        # 死实验复活（S2）与审稿人 2 号（D5）是设计方案附录 D.1 第一梯队的两件，
+        # 档案侧各自带一个可选对象；形状检查放在这里，跨档案检查放在 validate_library。
+        if raw.get("resurrection") is not None:
+            out.extend(self._check_resurrection(raw.get("resurrection")))
+        if raw.get("challenge") is not None:
+            out.extend(self._check_challenge(raw.get("challenge")))
+
+        return out
+
+    def _check_resurrection(self, raw) -> list[Violation]:
+        """resurrection：`unblocks[]` 的 record/basis 必须是 R-###，quote 必须够长可复核。"""
+        out: list[Violation] = []
+        if not isinstance(raw, dict):
+            return [Violation("resurrection", "不是对象", "object")]
+        items = raw.get("unblocks")
+        if items is None:
+            return out
+        if not isinstance(items, list):
+            return [Violation("resurrection.unblocks", "不是列表", "list")]
+        for i, item in enumerate(items):
+            base = "resurrection.unblocks[%d]" % i
+            if not isinstance(item, dict):
+                out.append(Violation(base, "元素不是对象", "object"))
+                continue
+            for key, label in (("record", "被解除的档案编号"), ("basis", "解除依据的档案编号")):
+                value = str(item.get(key, ""))
+                if not _ID_PATTERN.match(value):
+                    out.append(Violation(base + "." + key, "%s格式不合法" % label, "R-###"))
+            quote = item.get("quote")
+            if not isinstance(quote, str):
+                out.append(Violation(base + ".quote", "原文片段不是字符串", "string"))
+            elif len(quote) < _QUOTE_MIN:
+                out.append(Violation(
+                    base + ".quote", "原文片段过短，无法复核",
+                    "至少 %d 个字符的原文摘录" % _QUOTE_MIN))
+        return out
+
+    def _check_challenge(self, raw) -> list[Violation]:
+        """challenge：每条质询必须有非空的 evidence_ids，且每项都是 R-###。
+
+        与 `skills/reviewer2.py::is_grounded` 同一口径——没有编号的质询不得进库。
+        """
+        out: list[Violation] = []
+        if not isinstance(raw, dict):
+            return [Violation("challenge", "不是对象", "object")]
+        items = raw.get("challenges")
+        if items is None:
+            return out
+        if not isinstance(items, list):
+            return [Violation("challenge.challenges", "不是列表", "list")]
+        for i, item in enumerate(items):
+            base = "challenge.challenges[%d]" % i
+            if not isinstance(item, dict):
+                out.append(Violation(base, "元素不是对象", "object"))
+                continue
+            text = item.get("text")
+            if not isinstance(text, str) or not text.strip():
+                out.append(Violation(base + ".text", "质询内容为空", "非空字符串"))
+            ids = item.get("evidence_ids")
+            if not isinstance(ids, list) or not ids:
+                out.append(Violation(
+                    base + ".evidence_ids", "缺少证据编号（无出处的质询不得进库）",
+                    "至少一个 R-### 编号"))
+                continue
+            for j, one in enumerate(ids):
+                if not isinstance(one, str) or not _ID_PATTERN.match(one):
+                    out.append(Violation(
+                        "%s.evidence_ids[%d]" % (base, j), "证据编号格式不合法", "R-###"))
         return out
 
     def validate_library(self, raw: dict) -> list[Violation]:
@@ -231,6 +300,32 @@ class Validator:
                         "引文在被引用档案里找不到（不可复核）",
                         "该档案的 %s 中真实存在的原文片段" % " / ".join(QUOTABLE_FIELDS)))
 
+            # 死实验复活的解除依据同样必须可复核：解除依据指向的档案要存在，
+            # 且 quote 必须在**依据档案**里能找到（与 evidence_refs 同一铁律）。
+            for j, item in enumerate(_unblocks_of_raw(rec)):
+                if not isinstance(item, dict):
+                    continue                      # 元素类型问题由 validate_archive 报出
+                unblocked = str(item.get("record", ""))
+                basis = str(item.get("basis", ""))
+                if unblocked and unblocked not in known:
+                    out.append(Violation(
+                        "records[%d].resurrection.unblocks[%d].record" % (i, j),
+                        "被解除的档案不存在", "指向库内编号之一"))
+                if basis and basis not in known:
+                    out.append(Violation(
+                        "records[%d].resurrection.unblocks[%d].basis" % (i, j),
+                        "解除依据的档案不存在", "指向库内编号之一"))
+                    continue
+                quote = item.get("quote")
+                basis_rec = by_id.get(basis)
+                if basis_rec is None or not isinstance(quote, str) or not quote.strip():
+                    continue                      # 缺引文/类型问题由 validate_archive 负责
+                if not _quote_matches(quote, basis_rec):
+                    out.append(Violation(
+                        "records[%d].resurrection.unblocks[%d].quote" % (i, j),
+                        "解除依据的引文在依据档案里找不到（不可复核）",
+                        "依据档案的 %s 中真实存在的原文片段" % " / ".join(QUOTABLE_FIELDS)))
+
         return out
 
     def assert_valid(self, archive: Archive) -> None:
@@ -278,6 +373,14 @@ def _normalize(text: str) -> str:
 def _as_list(value) -> list:
     """宽容取列表：None / 非列表一律当空列表（类型问题由 _check_list_fields 负责报出）。"""
     return value if isinstance(value, list) else []
+
+
+def _unblocks_of_raw(archive: dict) -> list:
+    """宽容取档案的 resurrection.unblocks：形状不对一律当空列表，由 validate_archive 报出。"""
+    block = archive.get("resurrection")
+    if not isinstance(block, dict):
+        return []
+    return _as_list(block.get("unblocks"))
 
 
 def _quoted_text_of(archive: dict) -> list[str]:
