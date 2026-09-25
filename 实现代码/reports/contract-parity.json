@@ -1,6 +1,6 @@
 {
   "_note": "由 tools/make_contract_parity.py 从 Python 校验器生成；run_tests.py 会自动重建。",
-  "_generated_at": "2026-09-20T21:14:30",
+  "_generated_at": "2026-09-25T21:44:23",
   "dims": [
     "model",
     "seq_len",
@@ -17,6 +17,9 @@
       "challenge.challenges[0].evidence_ids",
       "challenge.challenges[1].evidence_ids[0]",
       "challenge.challenges[2].text"
+    ],
+    "invalid_clarifications.json": [
+      "clarifications[0].at"
     ],
     "invalid_conditions.json": [
       "conditions.seq_len",
@@ -50,6 +53,7 @@
       "resurrection.unblocks[0].quote",
       "resurrection.unblocks[1].basis"
     ],
+    "valid_clarifications.json": [],
     "valid_conditions.json": [],
     "valid_record.json": [],
     "valid_resurrection.json": []
@@ -292,6 +296,166 @@
         }
       },
       "key": "把micro-batch从8降到2并开启梯度累积跑长序列\u001f长序列下单卡显存不足\u001fmodel=llama-3-8b,seq_len:512->2048\u001fruns/2026-08-14-oomlog\u001f[[\"hardware\",\"rtx 4090\"],[\"precision\",\"bf16\"]]"
+    },
+    {
+      "input": {
+        "id": "R-101",
+        "attempt": "对 R-001 的人工纠错",
+        "expectation": "修正 R-001 的判断",
+        "observation": "显存不足其实是因为 batch 开太大，先降 batch",
+        "blocker": "长序列下单卡显存不足",
+        "attribution": {
+          "text": "人工纠错：显存不足其实是因为 batch 开太大，先降 batch",
+          "type": "observed"
+        },
+        "boundary": "仅针对 R-001 的判断，不改变其原始记录",
+        "confidence": "medium",
+        "status": "进行中",
+        "missing_info": [],
+        "artifacts": [],
+        "links": [
+          {
+            "target": "R-001",
+            "relation": "冲突",
+            "same": [],
+            "diff": [],
+            "transferable": ""
+          }
+        ],
+        "evidence_refs": [
+          {
+            "record": "R-001",
+            "quote": "长序列下单卡显存不足"
+          }
+        ],
+        "version": 1,
+        "provenance": {
+          "author": "人工纠错",
+          "date": "2026-09-23",
+          "source": "真实"
+        }
+      },
+      "key": "人工纠错\u001fr-001\u001f显存不足其实是因为batch开太大先降batch"
+    },
+    {
+      "input": {
+        "id": "R-102",
+        "attempt": "对 R-001 的人工纠错",
+        "expectation": "修正 R-001 的判断",
+        "observation": "这次 OOM 是数据加载瓶颈，与注意力开销无关",
+        "blocker": "长序列下单卡显存不足",
+        "attribution": {
+          "text": "人工纠错：这次 OOM 是数据加载瓶颈，与注意力开销无关",
+          "type": "observed"
+        },
+        "boundary": "仅针对 R-001 的判断，不改变其原始记录",
+        "confidence": "medium",
+        "status": "进行中",
+        "missing_info": [],
+        "artifacts": [],
+        "links": [
+          {
+            "target": "R-001",
+            "relation": "冲突",
+            "same": [],
+            "diff": [],
+            "transferable": ""
+          }
+        ],
+        "evidence_refs": [
+          {
+            "record": "R-001",
+            "quote": "长序列下单卡显存不足"
+          }
+        ],
+        "version": 1,
+        "provenance": {
+          "author": "人工纠错",
+          "date": "2026-09-23",
+          "source": "真实"
+        }
+      },
+      "key": "人工纠错\u001fr-001\u001f这次oom是数据加载瓶颈与注意力开销无关"
+    },
+    {
+      "input": {
+        "id": "R-103",
+        "attempt": "人工纠错：对 R-007 的判断有异议",
+        "expectation": "修正 R-007 的判断",
+        "observation": "对 R-007 的判断有异议",
+        "blocker": "长序列下单卡显存不足",
+        "attribution": {
+          "text": "人工纠错：对 R-007 的判断有异议",
+          "type": "observed"
+        },
+        "boundary": "仅针对 R-007 的判断，不改变其原始记录",
+        "confidence": "medium",
+        "status": "进行中",
+        "missing_info": [],
+        "artifacts": [],
+        "links": [
+          {
+            "target": "R-007",
+            "relation": "相似",
+            "same": [],
+            "diff": [],
+            "transferable": ""
+          }
+        ],
+        "evidence_refs": [
+          {
+            "record": "R-007",
+            "quote": "长序列下单卡显存不足"
+          }
+        ],
+        "version": 1,
+        "provenance": {
+          "author": "人工纠错",
+          "date": "2026-09-23",
+          "source": "真实"
+        }
+      },
+      "key": "人工纠错\u001fr-007\u001f对r-007的判断有异议"
+    },
+    {
+      "input": {
+        "id": "R-104",
+        "attempt": "对 R-001 的人工纠错",
+        "expectation": "修正 R-001 的判断",
+        "observation": "",
+        "blocker": "长序列下单卡显存不足",
+        "attribution": {
+          "text": "人工纠错：理由只落在 attribution.text 的回退分支",
+          "type": "observed"
+        },
+        "boundary": "仅针对 R-001 的判断，不改变其原始记录",
+        "confidence": "medium",
+        "status": "进行中",
+        "missing_info": [],
+        "artifacts": [],
+        "links": [
+          {
+            "target": "R-001",
+            "relation": "冲突",
+            "same": [],
+            "diff": [],
+            "transferable": ""
+          }
+        ],
+        "evidence_refs": [
+          {
+            "record": "R-001",
+            "quote": "长序列下单卡显存不足"
+          }
+        ],
+        "version": 1,
+        "provenance": {
+          "author": "人工纠错",
+          "date": "2026-09-23",
+          "source": "真实"
+        }
+      },
+      "key": "人工纠错\u001fr-001\u001f人工纠错理由只落在attributiontext的回退分支"
     }
   ]
 }

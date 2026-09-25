@@ -19,7 +19,7 @@
   4. **专家包镜像改为整份复制**（含 `bin/rra`、`bin/samples` 等生成物）——克隆仓库即可安装，
      一致性由 `--check` 摘要守着。
 - **证据**：`tests/test_cli_bootstrap.py`（3 条：无 PYTHONPATH / 无关 cwd / 孤立目录给可读错误）；
-  实测在 `C:\Users\Lenovo` 下 `python tools/rra_cli.py selftest` → **exit 0**；
+  实测在 `%USERPROFILE%` 下 `python tools/rra_cli.py selftest` → **exit 0**；
   `sync_expert.py` 同步后镜像 66 个文件、引擎摘要 `True`。
 
 ### P0-2 证据引用只查编号与长度 → **确认，已修**

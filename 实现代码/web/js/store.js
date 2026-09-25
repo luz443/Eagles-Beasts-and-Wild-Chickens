@@ -4,13 +4,37 @@ import { SAMPLE_LIBRARY } from "../data/library.sample.js";
 
 const SEP = "\u001f";
 
-/** 与 Python 侧 Deduplicator.key_of 逐字对齐：尝试 / 阻塞点 / 关键条件 / 关联产物，后两段排序。 */
+/** 「人工纠错」标记与目标编号正则：必须与 src/rra/library/refutation.py、src/rra/library/dedup.py 逐字一致。 */
+const REF_MARKER = "人工纠错";
+const REF_ID = /R-\d+/;
+
+function isRefutation(rec) {
+  return !!(rec && typeof rec.attempt === "string" && rec.attempt.includes(REF_MARKER));
+}
+
+/** 纠错记录专用键 = 标记 + 目标编号 + 归一化理由；取不到目标编号时返回 null（退回通用键）。 */
+function refutationKey(rec, norm) {
+  if (!isRefutation(rec)) return null;
+  let target = "";
+  for (const lk of (rec.links || [])) {
+    if (lk && lk.relation === "冲突") { target = lk.target || ""; break; }
+  }
+  if (!target) { const m = REF_ID.exec(rec.attempt || ""); if (m) target = m[0]; }
+  if (!target) return null;
+  const reason = rec.observation || ((rec.attribution && rec.attribution.text) || "");
+  return [norm(REF_MARKER), norm(target), norm(reason)].join(SEP);
+}
+
+/** 与 Python 侧 Deduplicator.key_of 逐字对齐：尝试 / 阻塞点 / 关键条件 / 关联产物，后两段排序。
+ *  纠错记录走专用键（同目标不同理由不再撞键），普通记录语义一个字不改。 */
 function dedupKey(rec) {
   const norm = (s) => String(s === undefined || s === null ? "" : s)
     .normalize("NFKC")
     .replace(/[，。！？、；：,.!?;:"'“”‘’（）()\[\]【】]+/g, "")
     .replace(/\s+/g, "")
     .toLowerCase();
+  const ref = refutationKey(rec, norm);
+  if (ref !== null) return ref;
   const conditions = [];
   for (const lk of (rec.links || [])) {
     for (const s of (lk.same || [])) conditions.push(s.dim + "=" + norm(s.value));

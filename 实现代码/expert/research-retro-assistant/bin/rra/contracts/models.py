@@ -235,6 +235,7 @@ class Archive:
     dedup_key: str = ""
     version: int = 1
     conditions: dict[str, str] = field(default_factory=dict)
+    clarifications: list[dict[str, str]] = field(default_factory=list)
     resurrection: list[Unblock] = field(default_factory=list)
     challenge: list[Challenge] = field(default_factory=list)
 
@@ -259,6 +260,10 @@ class Archive:
         }
         if self.conditions:
             out["conditions"] = dict(self.conditions)
+        # 与 conditions 同一约定：为空即不输出，保证历史档案的往返结果不变。
+        # clarifications 是澄清答复的留痕（P2-10），为空时同样不输出。
+        if self.clarifications:
+            out["clarifications"] = [dict(c) for c in self.clarifications]
         # 与 conditions 同一约定：为空即不输出，保证历史档案的往返结果不变
         if self.resurrection:
             out["resurrection"] = {"unblocks": [u.to_dict() for u in self.resurrection]}
@@ -286,6 +291,7 @@ class Archive:
             dedup_key=raw.get("dedup_key", ""),
             version=int(raw.get("version", 1)),
             conditions={_to_dim(key).value: value for key, value in raw.get("conditions", {}).items()},
+            clarifications=list(raw.get("clarifications", [])),
             resurrection=_unblocks_of(raw.get("resurrection")),
             challenge=_challenges_of(raw.get("challenge")),
         )

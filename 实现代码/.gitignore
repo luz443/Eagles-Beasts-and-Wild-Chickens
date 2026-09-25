@@ -28,3 +28,7 @@ reports/_tmp/
 # ---- 例外：归档目录里的占位产物要进仓库 ----
 # 它们是「占位数据没有被当成评测结果」这条纪律被执行的证据，不是成绩。
 !reports/archive/placeholder/**
+
+# 工具产物与占位结果（2026-09-23 交付卫生）
+.workbuddy/
+reports/eval-results/*-local.json

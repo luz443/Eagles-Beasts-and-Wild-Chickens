@@ -69,8 +69,8 @@
 ## 6. 环境与命令（Windows 本机实测）
 
 ```text
-隔离 python：C:\Users\Lenovo\.workbuddy\binaries\python\envs\default\Scripts\python.exe
-node 22   ：C:\Users\Lenovo\.workbuddy\binaries\node\versions\22.22.2\node.exe
+隔离 python：%USERPROFILE%\.workbuddy\binaries\python\envs\default\Scripts\python.exe
+node 22   ：%USERPROFILE%\.workbuddy\binaries\node\versions\22.22.2\node.exe
 ```
 
 | 目的 | 命令 |

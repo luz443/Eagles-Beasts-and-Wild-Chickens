@@ -28,7 +28,7 @@ _ALLOWED_TOP = {
     "id", "attempt", "expectation", "observation", "blocker", "attribution",
     "missing_info", "boundary", "confidence", "status", "artifacts", "links",
     "evidence_refs", "dedup_key", "version", "provenance", "conditions",
-    "resurrection", "challenge",
+    "resurrection", "challenge", "clarifications",
 }
 # 与 record.schema.json 的 minLength: 1 对齐，按**原串**长度判（不 trim），
 # 避免「schema 按原串、校验器按 trim」造成的两端漂移。
@@ -37,6 +37,9 @@ _STRING_REQUIRED = [
 ]
 _REQUIRED_PROVENANCE = ["author", "date", "source"]
 _SOURCES = {"真实", "模拟"}
+# 产物类型枚举：与 contracts/record.schema.json 的 artifacts[].kind 保持一致
+# （2026-09-22 后端审查 P0：此前该字段完全不查类型，字符串数组也能过闸门）
+_ARTIFACT_KINDS = {"code", "data", "log"}
 
 
 @dataclass
@@ -126,6 +129,28 @@ class Validator:
             if raw.get(field) is not None and not isinstance(raw.get(field), list):
                 out.append(Violation(field, "不是列表", "list"))
 
+        # 2026-09-22 后端审查 P0：下面这些字段此前只查"在不在白名单 / 是不是列表"，
+        # **类型不查** —— 结果闸门返回 ok:true，而真正读库的路径（Archive.from_dict / store.next_id）
+        # 立刻抛 TypeError / KeyError。闸门必须在这里把话说清楚，而不是让调用方去啃栈。
+        version = raw.get("version")
+        if version is not None and (isinstance(version, bool) or not isinstance(version, int)
+                                    or version < 1):
+            out.append(Violation("version", "版本号类型或取值不合法", ">=1 的整数"))
+        if raw.get("dedup_key") is not None and not isinstance(raw.get("dedup_key"), str):
+            out.append(Violation("dedup_key", "去重指纹不是字符串", "string"))
+        for i, item in enumerate(_as_list(raw.get("missing_info"))):
+            if not isinstance(item, str):
+                out.append(Violation("missing_info[%d]" % i, "缺失信息不是字符串", "string"))
+        for i, artifact in enumerate(_as_list(raw.get("artifacts"))):
+            if not isinstance(artifact, dict):
+                out.append(Violation("artifacts[%d]" % i, "产物不是对象", "object"))
+                continue
+            if artifact.get("kind") not in _ARTIFACT_KINDS:
+                out.append(Violation("artifacts[%d].kind" % i, "产物类型不在枚举内",
+                                     " / ".join(sorted(_ARTIFACT_KINDS))))
+            if not isinstance(artifact.get("ref", ""), str):
+                out.append(Violation("artifacts[%d].ref" % i, "产物引用不是字符串", "string"))
+
         for i, link in enumerate(_as_list(raw.get("links"))):
             base = "links[%d]" % i
             if not isinstance(link, dict):
@@ -171,6 +196,9 @@ class Validator:
             out.extend(self._check_resurrection(raw.get("resurrection")))
         if raw.get("challenge") is not None:
             out.extend(self._check_challenge(raw.get("challenge")))
+        # 澄清留痕（2026-09-22 后端审查 P2-10）：答复原文必须能进档案、可复核。
+        if raw.get("clarifications") is not None:
+            out.extend(self._check_clarifications(raw.get("clarifications")))
 
         return out
 
@@ -235,6 +263,27 @@ class Validator:
                         "%s.evidence_ids[%d]" % (base, j), "证据编号格式不合法", "R-###"))
         return out
 
+    def _check_clarifications(self, raw) -> list[Violation]:
+        """clarifications：澄清答复的留痕，每项必须是 key / answer / at 三个非空字符串。
+
+        答复原文必须能进档案，否则「当时补了什么」无从复核（P2-10）。
+        三个键都按非空判：空 answer 等于没留痕，空 key 等于不知道补的是哪一项。
+        """
+        out: list[Violation] = []
+        if not isinstance(raw, list):
+            return [Violation("clarifications", "不是列表", "list")]
+        for i, item in enumerate(raw):
+            base = "clarifications[%d]" % i
+            if not isinstance(item, dict):
+                out.append(Violation(base, "元素不是对象", "object"))
+                continue
+            for key in ("key", "answer", "at"):
+                value = item.get(key)
+                if not isinstance(value, str) or not value.strip():
+                    out.append(Violation(
+                        base + "." + key, "不是非空字符串", "非空 string"))
+        return out
+
     def validate_library(self, raw: dict) -> list[Violation]:
         """校验整库：编号唯一、links / evidence_refs 指向的档案存在、**引文可复核**。
 
@@ -248,6 +297,12 @@ class Validator:
         records = raw.get("records")
         if not isinstance(records, list):
             return [Violation("records", "缺少档案列表", "list")]
+
+        # 2026-09-22 后端审查 P0：库级 version 此前完全不查 —— 缺它时 validate 仍返回 ok，
+        # 而 store.load()/next_id() 立刻 KeyError。闸门要把这件事说在明面上。
+        lib_version = raw.get("version")
+        if not isinstance(lib_version, str) or not lib_version.strip():
+            out.append(Violation("version", "库级版本号缺失或不是字符串", "非空字符串"))
 
         seen: dict[str, int] = {}
         for i, rec in enumerate(records):

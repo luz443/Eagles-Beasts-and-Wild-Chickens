@@ -117,9 +117,14 @@ class InductionSkill(SkillBase):
 
         **先剔除人工纠错记录**（与网页端 `web/js/views/incubation.js` 同一口径）：
         纠错不是一次尝试，否则 2 条真实记录 + 1 条纠错就能凑满 3 条、凭空产出假设。
+
+        非对象的元素在这里报 `ValueError` 并指出实际类型——分组要靠 `r.get()`，
+        放过去就是 AttributeError（2026-09-22 审查 P2-7）。
         """
         groups: dict[str, list[dict]] = {}
-        for r in exclude_refutations(records):
+        for i, r in enumerate(exclude_refutations(records)):
+            if not isinstance(r, dict):
+                raise ValueError("records[%d] 不是对象：%r" % (i, type(r).__name__))
             groups.setdefault(r.get("blocker", ""), []).append(r)
         return {k: v for k, v in groups.items()
                 if k and len(v) >= self.MIN_SUPPORTING}

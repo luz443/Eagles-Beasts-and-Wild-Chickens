@@ -1,15 +1,15 @@
 {
   "prompt_version": "v1.0-frozen",
-  "frozen_at": "2026-09-20T17:17:11",
+  "frozen_at": "2026-09-22T20:42:29",
   "frozen_by": "团队",
-  "prompt_hash": "d1ef31a2d1c947ceb68d169e8e4db456a8bbc9276a8dd4da14daf993c6bf188b",
+  "prompt_hash": "867984f8a6eb23cb99c8f383374dd17b1d8fa79f1fd77eec774185e3648c6cb7",
   "prompt_path": "prompts/condition_compare.md",
   "prompt_hashes": {
-    "prompts/condition_compare.md": "5333c72cd5b7b48537da18399fed831edaf450ee88137746f82d5a8002a40010",
-    "prompts/extract.md": "739287a872904f7367da0db4261b6cc4fc84819bc235fa7f5ed8129fb8976542",
-    "prompts/induction.md": "23c12f57e464021ebdeb5d22ef190d4eef10bcde88c1a84168f634ef82507544",
-    "prompts/resurrection.md": "9d2d1ed867d20f18e4906cc26722f3ed26a549e7129e92818528a90640954287",
-    "prompts/reverse_lookup.md": "e713eeb2edb2e420dc76a2ca3a99a4c1a54167ba1ebf8b08f993bbf8d7408f8f",
-    "prompts/reviewer2.md": "89952f9d7fedee6bf3fa3a6ce53f5b83964c16710bf13ddfd7d29a666ccbb9a6"
+    "prompts/condition_compare.md": "09f26b54401c0cb09d1693d406b0dadeb0145232726bbd275deeeffb4521d2eb",
+    "prompts/extract.md": "d8c33e91bb6f85611a3a219fff57af1f800289e3c2b654b7dff19b50814e04b0",
+    "prompts/induction.md": "bb3da5f1382b6fe8bb0e0c8c2ac7ac9e195ef68cbd466157b8517acd4a03a137",
+    "prompts/resurrection.md": "f5aa9a4f3ff2744c5f16e751a604aefc607450fae541e524f1f5ba621c07e169",
+    "prompts/reverse_lookup.md": "0d38032fc4789e2bd67ca12f5f774a516d8dcf952a6315d49061d3f4c1a12e7f",
+    "prompts/reviewer2.md": "896398b143133f33cdc421a79bba369488112ba36ebc094ccd1bc5b9947e2649"
   }
 }

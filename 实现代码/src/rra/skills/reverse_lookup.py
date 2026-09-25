@@ -5,6 +5,8 @@
 引文必须够长可复核，无命中时**一个编号都不许出现**。
 """
 
+from datetime import datetime
+
 from .base import (
     SkillBase, SkillInput, SkillOutput, SkillRefusal, expert_output, normalize_archive,
 )
@@ -67,10 +69,10 @@ class ReverseLookupSkill(SkillBase):
         )
 
     def update_after_clarification(self, output: SkillOutput, answer: str) -> SkillOutput:
-        """澄清往返的**确定性**部分：记账 + 版本推进。
+        """澄清往返的**确定性**部分：记账 + 版本推进 + 答复留痕。
 
         语义重判（结论强度、证据引用是否更新）仍由专家在下一轮完成；
-        这里只保证「补充过什么」被如实记录、且入库版本与澄清前那一版可区分。
+        这里只保证「补充过什么」被如实记录（含答复原文）、且入库版本与澄清前那一版可区分。
         """
         answer = str(answer or "").strip()
         if not answer:
@@ -85,7 +87,7 @@ class ReverseLookupSkill(SkillBase):
                     "澄清答复未匹配到任何缺失字段（%s），档案未变更" % answer],
             )
 
-        updated = self.apply_clarification_facts(output, resolved)
+        updated = self.apply_clarification_facts(output, resolved, answer=answer)
         return SkillOutput(
             payload=updated.payload,
             narrative=output.narrative,
@@ -102,17 +104,31 @@ class ReverseLookupSkill(SkillBase):
         return [str(m) for m in (archive.get("missing_info") or [])
                 if str(m) and str(m).lower() in text]
 
-    def apply_clarification_facts(self, output: SkillOutput, resolved_keys: list[str]) -> SkillOutput:
-        """确定性记账：把已澄清的字段从 missing_info 移除，并把档案版本 +1。
+    def apply_clarification_facts(self, output: SkillOutput, resolved_keys: list[str],
+                                  answer: str = "") -> SkillOutput:
+        """确定性记账：移除已澄清的 missing_info、档案版本 +1、答复原文进 `clarifications`。
 
         版本递增是刻意的：入库版本与澄清前那一版必须可区分
         （对应设计方案 3.2 的「最终确认的那一版才是入库版本」）。
+
+        `answer` 是答复原文，按 `{"key", "answer", "at"}` 逐项追加进 `clarifications`——
+        只把答复放在 warnings 里等于没留痕，日后无法复核「补了什么」（P2-10）。
+        取不到答复原文（answer 为空）时不编造：宁可不留痕，也不写一条查不到出处的记录。
         """
         payload = dict(output.payload)
         resolved = {str(k) for k in resolved_keys}
         missing = [m for m in payload.get("missing_info", []) if str(m) not in resolved]
         payload["missing_info"] = missing
         payload["version"] = int(payload.get("version", 1)) + 1
+
+        text = str(answer or "").strip()
+        if text:
+            log = [dict(item) for item in (payload.get("clarifications") or [])]
+            at = datetime.now().isoformat(timespec="seconds")
+            for key in resolved_keys:
+                log.append({"key": str(key), "answer": text, "at": at})
+            payload["clarifications"] = log
+
         warnings = list(output.warnings) + [
             "已澄清字段：%s；文档版本递增至 v%d" % ("、".join(resolved_keys), payload["version"])]
         return SkillOutput(payload=payload, narrative=output.narrative, warnings=warnings)

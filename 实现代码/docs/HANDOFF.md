@@ -8,7 +8,7 @@
 
 | 想做的事 | 命令 |
 | --- | --- |
-| 跑一遍全部验证 | `<python> run_tests.py`（170 条 Python 测试 + 7 个前端套件） |
+| 跑一遍全部验证 | `<python> run_tests.py`（268 条 Python 测试 + 7 个前端套件） |
 | 本地看网页 | 在 `web/` 下起 `<python> -m http.server 8123`，打开 `http://127.0.0.1:8123/index.html` |
 | 深链直达某个视图 / 档案 | 网址后加 `#/resurrection`、`#/map`、`#/incubation`、`#/detail/R-003`；检索条件也可带 `#/library?q=显存&sort=confidence` |
 | 键盘操作 | `1`–`6` 切视图、`/` 定位检索框（界面页签下方有提示） |
@@ -40,14 +40,18 @@
 | **六个技能的 `build()`（确定性把关）** | ✅ **本轮新增**；`src/rra` 下只剩 `base.py::build` 一处 `NotImplementedError`，且有明确理由 |
 | 专家包（6 技能 + 提示词 + 确定性 CLI） | ✅ 已落地、官方校验通过、已注册；仓内镜像 `expert/` 由 `--mirror-only` 同步 |
 | 平台内冒烟（专家能否执行包内脚本） | ✅ 已通过（2026-09-19 20:00，`ls` + `selftest` 退出码均 0，0.92 Credits） |
-| **真实评测跑批** | ⛔ 待平台额度（`reports/eval-log.md` 只能由真实跑批写） |
-| PPT / 视频 / 对话记录 | ⛔ 未开始（本轮明确不做） |
+| **真实评测跑批** | ✅ **已完成（2026-09-23）**：27/27 用例、平台内真实会话 5 批、23.79 Credits；见 `reports/eval-real-sessions.md`（`reports/eval-log.md` 仍只由跑批器写） |
+| PPT / 视频 | ⛔ 未开始（本轮明确不做） |
+| 对话记录 | ✅ 已入包（`实现代码/对话记录/`，5 份真实会话 jsonl + README，已脱敏） |
 | 静态托管（作品在线链接） | 🟡 待发布：此前是 Cloudflare 快速隧道（随进程失效，**已废弃**）；`web/` 可直接静态托管，站点根必须是 `web/` |
 
-**验证现状**：Python **170 条测试全绿**；前端 7 个套件全绿（契约一致性 11 夹具 + 4 指纹样本、
+**验证现状（2026-09-24 复核）**：Python **268 条测试全绿**（`Ran 268 tests … OK`，exit 0；
+170 → 268 为 9-22 后端审查 11 项 + 收尾 4 项修复新增护栏所致）；前端 7 个套件全绿（契约一致性 13 夹具 + 8 指纹样本、
 路由 23 项、排序 10 项、纠错规则一致性 10 项、**复活规则一致性 20 项**、写失败原子性 11 项、
 工作台回归）；`tools/check_web.py` 25 个 JS + 3 个 CSS、0 问题；`tools/sync_expert.py --check`
 （镜像）引擎摘要与 CLI 摘要一致；`tools/validate_library.py` 15 条整库校验通过。
+**真实评测（2026-09-23）**：27/27 用例已在平台内以真实会话跑完（5 批、23.79 Credits），
+见 `reports/eval-real-sessions.md` 与 `对话记录/`；`reports/eval-log.md` 仍只由跑批器写入。
 
 **浏览器实测（2026-09-20）**：用 CDP 直接驱动本机 Chromium（headless）走查了
 **8 个视图 + 4 项交互**：逐页截图、控制台 **error/warn 为 0**、

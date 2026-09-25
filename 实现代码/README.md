@@ -4,7 +4,9 @@ LearnBuddy 专家（AI 入口）+ 静态网页（使用入口）的工程实现�
 
 > 当前状态：**可用**。契约层、库、召回、评测、种子数据、导出、六个技能的确定性把关、
 > 八个网页视图、专家包（含 6 技能 + 确定性 CLI）均已落地并测试。
-> `python run_tests.py` 跑 **170 条 Python 测试 + 7 个前端套件**，全绿。
+> `python run_tests.py` 跑 **268 条 Python 测试 + 7 个前端套件**，全绿（2026-09-24 复核）。
+> 评测：27 条用例已在 LearnBuddy 平台内以真实会话跑完（27/27，23.79 Credits），
+> 见 `reports/eval-real-sessions.md`；原始对话记录见提交材料（`对话记录/README.md` 有说明）。
 
 ## 目录
 

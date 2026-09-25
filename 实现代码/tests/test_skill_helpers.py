@@ -76,7 +76,7 @@ class TestInduction(unittest.TestCase):
 
 class TestResurrection(unittest.TestCase):
     def test_candidates_are_abandoned_with_blocker(self):
-        lib = {"records": [
+        lib = {"version": "0.1.0", "records": [
             {"id": "R-001", "status": "已放弃", "blocker": "显存不足"},
             {"id": "R-002", "status": "进行中", "blocker": "显存不足"},
             {"id": "R-003", "status": "已放弃", "blocker": ""},

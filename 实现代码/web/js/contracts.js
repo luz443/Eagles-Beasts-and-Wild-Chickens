@@ -35,6 +35,20 @@ function normText(value) {
     .toLowerCase();
 }
 
+/** 纠错记录专用去重键：标记 + 目标编号 + 归一化理由；取不到目标编号时返回 null（退回通用键）。
+ *  与 store.js::refutationKey / Python Deduplicator._refutation_key 逐字一致。 */
+function refutationKeyForParity(rec, norm) {
+  if (!rec || typeof rec.attempt !== "string" || !rec.attempt.includes("人工纠错")) return null;
+  let target = "";
+  for (const lk of (rec.links || [])) {
+    if (lk && lk.relation === "冲突") { target = lk.target || ""; break; }
+  }
+  if (!target) { const m = /R-\d+/.exec(rec.attempt || ""); if (m) target = m[0]; }
+  if (!target) return null;
+  const reason = rec.observation || ((rec.attribution && rec.attribution.text) || "");
+  return [norm("人工纠错"), norm(target), norm(reason)].join("\u001f");
+}
+
 /** 宽容取数组：非数组一律当空数组（类型问题由 validateArchive 负责报出）。 */
 function asList(value) {
   return Array.isArray(value) ? value : [];
@@ -63,7 +77,7 @@ const REQUIRED_TOP = ["id", "attempt", "expectation", "observation", "blocker",
 const ALLOWED_TOP = new Set(["id", "attempt", "expectation", "observation", "blocker",
   "attribution", "missing_info", "boundary", "confidence", "status", "artifacts",
   "links", "evidence_refs", "dedup_key", "version", "provenance", "conditions",
-  "resurrection", "challenge"]);
+  "resurrection", "challenge", "clarifications"]);
 const STRING_REQUIRED = ["id", "attempt", "expectation", "observation", "blocker", "boundary"];
 const SOURCES = ["真实", "模拟"];
 
@@ -98,6 +112,11 @@ export class ContractValidator {
     }
     if (raw.challenge !== undefined && raw.challenge !== null) {
       out.push(...this.checkChallenge(raw.challenge));
+    }
+    // 澄清留痕（P2-10）：答复原文必须能进档案、可复核。此前这里只放行 ALLOWED_TOP、
+    // 不做任何类型检查，非法 clarifications 能过 JS 端 —— 与 Python 端强度不对齐。
+    if (raw.clarifications !== undefined && raw.clarifications !== null) {
+      out.push(...this.checkClarifications(raw.clarifications));
     }
     for (const key of STRING_REQUIRED) {
       const v = raw[key];
@@ -261,6 +280,29 @@ export class ContractValidator {
     return out;
   }
 
+  /** clarifications：澄清答复的留痕，每项必须是 key / answer / at 三个非空字符串。
+   *  与 Python 侧 Validator._check_clarifications 逐条对齐（P2-10）；空 answer 等于没留痕。 */
+  checkClarifications(raw) {
+    const out = [];
+    if (!Array.isArray(raw)) {
+      return [{ path: "clarifications", reason: "不是列表", expected: "list" }];
+    }
+    raw.forEach((item, i) => {
+      const base = `clarifications[${i}]`;
+      if (!isPlainObject(item)) {
+        out.push({ path: base, reason: "元素不是对象", expected: "object" });
+        return;
+      }
+      for (const key of ["key", "answer", "at"]) {
+        const value = item[key];
+        if (typeof value !== "string" || !value.trim()) {
+          out.push({ path: base + "." + key, reason: "不是非空字符串", expected: "非空 string" });
+        }
+      }
+    });
+    return out;
+  }
+
   validateLibrary(raw) {
     if (!raw || !Array.isArray(raw.records)) {
       return [{ path: "records", reason: "缺少档案列表", expected: "array" }];
@@ -343,10 +385,13 @@ export class ContractValidator {
     return DIMS.includes(value);
   }
 
-  /** 去重指纹（与 store.js / Python Deduplicator 三方必须同口径；供一致性测试调用）。 */
+  /** 去重指纹（与 store.js / Python Deduplicator 三方必须同口径；供一致性测试调用）。
+   *  纠错记录走专用键（标记 + 目标编号 + 归一化理由），普通记录语义一个字不改。 */
   dedupKeyForParity(rec) {
     const SEP = "\u001f";
     const norm = normText;      // 与引文核验共用同一套规范化，避免"两处各写一遍"再度分叉
+    const ref = refutationKeyForParity(rec, norm);
+    if (ref !== null) return ref;
     const conditions = [];
     for (const lk of (rec.links || [])) {
       for (const s of (lk.same || [])) conditions.push(s.dim + "=" + norm(s.value));

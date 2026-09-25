@@ -1,0 +1,25 @@
+{
+  "id": "R-013",
+  "attempt": "把 micro-batch 从 8 降到 2 并开启梯度累积跑长序列",
+  "expectation": "在 24G 显存上完成 seq_len=2048 的训练",
+  "observation": "显存仍不足，200 step 内 OOM 两次",
+  "blocker": "长序列下单卡显存不足",
+  "attribution": { "text": "怀疑是注意力矩阵开销随序列长度平方增长", "type": "assumption" },
+  "missing_info": ["是否开启 flash-attention"],
+  "boundary": "该结论仅在单卡 24G、未启用 flash-attention 时成立",
+  "confidence": "low",
+  "status": "进行中",
+  "artifacts": [{ "kind": "log", "ref": "runs/2026-08-14-oom.log" }],
+  "links": [],
+  "evidence_refs": [],
+  "clarifications": [
+    {
+      "key": "micro-batch 实际生效值",
+      "answer": "micro-batch 实际生效值是 2",
+      "at": "2026-09-22T10:00:00"
+    }
+  ],
+  "dedup_key": "seq2048|显存不足|llama3-8b",
+  "version": 1,
+  "provenance": { "author": "模拟学生 A", "date": "2026-08-14", "source": "模拟" }
+}

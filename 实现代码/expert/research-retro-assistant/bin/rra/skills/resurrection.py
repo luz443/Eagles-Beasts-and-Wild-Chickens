@@ -66,6 +66,7 @@ class ResurrectionSkill(SkillBase):
         # 只挑与解除依据相关的违规——已存在的历史问题不由本技能负责。
         merged = {
             "version": str(library.get("version", "1")),
+            "version": str(library.get("version", "0.1.0")),
             "records": [r for r in library.get("records", [])
                         if isinstance(r, dict) and str(r.get("id")) != str(archive.get("id"))]
                        + [archive],
@@ -85,6 +86,16 @@ class ResurrectionSkill(SkillBase):
         """先筛出「已放弃且阻塞点明确」的记录，再交给专家判断是否被解除。
 
         这是纯筛选：不做任何语义推断，也不因「放弃过」就给方向下判决。
+
+        非对象的元素在这里报 `ValueError` 并指出实际类型；库快照本身不是对象时按空库处理
+        （与 `build()` 里 `payload.library or {}` 的宽容口径一致），都不抛 AttributeError
+        （2026-09-22 审查 P2-7）。
         """
-        return [r for r in (library or {}).get("records", [])
-                if r.get("status") == CANDIDATE_STATUS and str(r.get("blocker", "")).strip()]
+        lib = library if isinstance(library, dict) else {}
+        out: list[dict] = []
+        for i, r in enumerate(lib.get("records") or []):
+            if not isinstance(r, dict):
+                raise ValueError("records[%d] 不是对象：%r" % (i, type(r).__name__))
+            if r.get("status") == CANDIDATE_STATUS and str(r.get("blocker", "")).strip():
+                out.append(r)
+        return out

@@ -13,8 +13,19 @@ VERDICTS = ("同一问题", "条件不同", "条件不全", "真冲突")
 
 
 def _known_conditions(record: dict) -> dict[str, str]:
-    """比较时只采用去除首尾空白后仍有内容的字符串条件。"""
-    return {dim: value.strip() for dim, value in (record.get("conditions") or {}).items()
+    """比较时只采用去除首尾空白后仍有内容的字符串条件。
+
+    取值处必须自己判类型：`record` / `conditions` 不是对象时报 `ValueError`（规格问题），
+    而不是让 `.get()` / `.items()` 把 AttributeError 抛给调用方（2026-09-22 审查 P2-7）。
+    """
+    if not isinstance(record, dict):
+        raise ValueError("待比较的记录不是对象：%r" % type(record).__name__)
+    conditions = record.get("conditions")
+    if conditions is None:
+        return {}
+    if not isinstance(conditions, dict):
+        raise ValueError("conditions 不是对象：%r" % type(conditions).__name__)
+    return {dim: value.strip() for dim, value in conditions.items()
             if isinstance(value, str) and value.strip()}
 
 

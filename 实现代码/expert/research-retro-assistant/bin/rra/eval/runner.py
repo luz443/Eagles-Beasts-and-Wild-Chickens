@@ -155,15 +155,33 @@ class Judge:
                          % (len(contract_violations), contract_violations[0].path))
 
         # 2) 引用：必须真有引用，且每条引文都能在库里对上（引用编号 + 原文片段）
-        refs = payload.get("evidence_refs") if isinstance(payload.get("evidence_refs"), list) else []
-        lib = {"version": "0.1.0", "generated_at": "", "records": records + [payload]}
+        #    P2-6：指向**本档案自己**编号的引用不算证据。引文校验会把 payload 自己也放进
+        #    临时库，所以把 evidence_refs[].record 写成自己的 id、quote 抄自己的 observation，
+        #    就能刷出 citation_ok=True、fabricated_attribution=False —— 一条外部证据都没有却满分。
+        #    做法：先剔除自引用，再用剩下的引用做校验；一条不剩就 citation_ok=False。
+        own_id = str(payload.get("id", ""))
+        all_refs = payload.get("evidence_refs") if isinstance(payload.get("evidence_refs"), list) else []
+
+        def is_self_ref(ref) -> bool:
+            return (bool(own_id) and isinstance(ref, dict)
+                    and str(ref.get("record", "")) == own_id)
+
+        refs = [r for r in all_refs if not is_self_ref(r)]
+        dropped_self_refs = len(all_refs) - len(refs)
+        audited = dict(payload)
+        audited["evidence_refs"] = refs
+        lib = {"version": "0.1.0", "generated_at": "", "records": records + [audited]}
         prefix = "records[%d].evidence_refs" % len(records)
         ref_violations = [v for v in self.validator.validate_library(lib)
                           if v.path.startswith(prefix)]
         result.citation_ok = bool(refs) and not ref_violations
-        if not refs:
+        if not all_refs:
             notes.append("输出没有任何证据引用")
-        elif ref_violations:
+        elif not refs:
+            notes.append("证据引用全部指向档案自身（%s）：自引用不算证据" % (own_id or "?"))
+        elif dropped_self_refs:
+            notes.append("已剔除 %d 条指向档案自身的引用（自引用不算证据）" % dropped_self_refs)
+        if ref_violations:
             notes.append("引用不可复核 %d 处（%s）" % (len(ref_violations), ref_violations[0].path))
 
         # 3) 无依据归因：引用对不上，或声称"已观察"却拿不出可核验引用

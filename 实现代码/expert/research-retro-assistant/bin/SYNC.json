@@ -1,8 +1,8 @@
 {
-  "source_repo": "D:\\code\\codex\\project\\大湾区AICoding\\仓库内容\\实现代码",
+  "source_repo": "(本仓库根；绝对路径不写入，保证可移植)",
   "note": "bin/rra、bin/samples、skills/*/references、bin/rra_cli.py 为生成物；改仓库后重跑本脚本。",
-  "engine_digest": "ed9099c50fe61f6c893e9ad428d493c7b0d1e0bd60eaf8844d952bc1c8dfa544",
-  "repo_engine_digest": "ed9099c50fe61f6c893e9ad428d493c7b0d1e0bd60eaf8844d952bc1c8dfa544",
-  "cli_digest": "75c1d5de7464e76deecb8c96bb26050627a87f51e5d1ff05f78368f6d793821e",
-  "repo_cli_digest": "75c1d5de7464e76deecb8c96bb26050627a87f51e5d1ff05f78368f6d793821e"
+  "engine_digest": "f8b436cce8ca0ae55f4ae76c0b0ab9e0142ffd9cbcf6393709ac2b7a3a917348",
+  "repo_engine_digest": "f8b436cce8ca0ae55f4ae76c0b0ab9e0142ffd9cbcf6393709ac2b7a3a917348",
+  "cli_digest": "ce308142ffbab36c7ce32465a38c5009fc71d6a2945d806436a567528a56e5c2",
+  "repo_cli_digest": "ce308142ffbab36c7ce32465a38c5009fc71d6a2945d806436a567528a56e5c2"
 }

@@ -71,12 +71,44 @@ def py_digest(root: Path) -> str:
     return h.hexdigest()
 
 
+def copy_tree_overwrite(src: Path, dst: Path, ignore=None):
+    """把 src 覆盖复制到 dst：**不先删目录**再重建。
+
+    刻意不用 `shutil.rmtree` 重建：本机 safe-delete 垫片会让"先删后建"整目录失败
+    并留下删不掉的残留，过去只能把旧镜像先 `move` 到系统临时目录绕开——这正是残留的来源。
+    覆盖写（`dirs_exist_ok=True`）原地刷新，不产生任何临时目录。
+    """
+    shutil.copytree(src, dst, dirs_exist_ok=True,
+                    ignore=ignore or shutil.ignore_patterns("__pycache__", "*.pyc"))
+
+
+def prune_extra(src_root: Path, dst_root: Path, log, label: str) -> int:
+    """删掉 dst 里相对于 src 已不存在的多余文件（按相对路径比对，只动 dst 内的文件）。
+
+    引擎里删掉/改名过一个模块时，覆盖写会留下旧副本，摘要就会静默漂移——
+    这里按相对路径找出这些多余文件并逐个删掉。**只删 dst 内的文件**，绝不碰 src。
+
+    刻意不清理空目录：本机 safe-delete 垫片会拦截目录删除，对**非空目录**调用
+    `rmdir()` 会被它当成递归删除、连同目录内容一起清空（实测把 28 个文件全删光）。
+    空目录对引擎摘要没有任何影响，留着比误删安全。
+    """
+    removed = 0
+    if not dst_root.exists():
+        return 0
+    for p in sorted((x for x in dst_root.rglob("*") if x.is_file()),
+                    key=lambda x: len(x.parts), reverse=True):
+        if not (src_root / p.relative_to(dst_root)).exists():
+            p.unlink()
+            removed += 1
+    if removed:
+        log.append("%s：清理源中已不存在的多余文件 %d 个" % (label, removed))
+    return removed
+
+
 def sync_generated(log, target: Path):
     """仓库 → 目标包：引擎、CLI、提示词、契约、样例。"""
-    if (target / "bin" / "rra").exists():
-        shutil.rmtree(target / "bin" / "rra")
-    shutil.copytree(REPO / "src" / "rra", target / "bin" / "rra",
-                    ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+    copy_tree_overwrite(REPO / "src" / "rra", target / "bin" / "rra")
+    prune_extra(REPO / "src" / "rra", target / "bin" / "rra", log, "bin/rra/")
     log.append("bin/rra/  ← src/rra/（%d 个文件）"
                % sum(1 for p in (target / "bin" / "rra").rglob("*") if p.is_file()))
 
@@ -88,6 +120,7 @@ def sync_generated(log, target: Path):
     shutil.copyfile(REPO / "data" / "library.seed.json", samples / "library.seed.json")
     for f in sorted((REPO / "contracts").glob("*.json")):
         shutil.copyfile(f, samples / "contracts" / f.name)
+    prune_extra(REPO / "contracts", samples / "contracts", log, "bin/samples/contracts/")
     log.append("bin/samples/ ← data/ + contracts/")
 
     for prompt, skill in SKILL_OF_PROMPT.items():
@@ -109,7 +142,7 @@ def sync_generated(log, target: Path):
         log.append("skills/%s/references/ ← prompts/%s + contracts/" % (skill, prompt))
 
     manifest = {
-        "source_repo": str(REPO),
+        "source_repo": "(本仓库根；绝对路径不写入，保证可移植)",
         "note": "bin/rra、bin/samples、skills/*/references、bin/rra_cli.py 为生成物；改仓库后重跑本脚本。",
         "engine_digest": py_digest(target / "bin" / "rra"),
         "repo_engine_digest": py_digest(REPO / "src" / "rra"),
@@ -127,10 +160,12 @@ def sync_mirror(log):
     2026-09-19 外部审查指出：原镜像只放"手写文件"，缺 bin/rra 与 bin/samples，
     克隆下来根本跑不起来。生成物进仓库确实有重复，但它们由本脚本产出、
     并由 sha256 摘要守着（`--check`）不会静默漂移 —— 这比"缺文件导致跑不起来"划算。
+
+    同样不再 rmtree 重建镜像：覆盖写 + 按相对路径清理多余文件（见 copy_tree_overwrite /
+    prune_extra），既不产生系统临时目录残留，也能把源里已删除的文件从镜像里摘掉。
     """
-    if MIRROR.exists():
-        shutil.rmtree(MIRROR)
-    shutil.copytree(PKG, MIRROR, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+    copy_tree_overwrite(PKG, MIRROR)
+    prune_extra(PKG, MIRROR, log, "expert/%s/" % NAME)
     log.append("expert/%s/  ← 完整专家包（含生成物，共 %d 个文件）"
                % (NAME, sum(1 for p in MIRROR.rglob("*") if p.is_file())))
 

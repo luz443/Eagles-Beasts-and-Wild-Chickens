@@ -128,6 +128,19 @@
     },
     "dedup_key": { "type": "string" },
     "version": { "type": "integer", "minimum": 1, "default": 1 },
+    "clarifications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["key", "answer", "at"],
+        "additionalProperties": false,
+        "properties": {
+          "key": { "type": "string", "minLength": 1 },
+          "answer": { "type": "string", "minLength": 1 },
+          "at": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
     "provenance": {
       "type": "object",
       "required": ["author", "date", "source"],

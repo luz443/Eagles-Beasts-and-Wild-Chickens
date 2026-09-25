@@ -35,7 +35,7 @@
 
 - 证据 A：官方"资料转化策略"表明文：「可执行脚本代码 → `scripts/`」「通用 CLI 工具 → `bin/`」。
 - 证据 B（实物）：expert-manager 技能自身就带 6 个 Python 脚本，位于
-  `C:\Users\Lenovo\AppData\Local\Programs\LearnBuddy\resources\app.asar.unpacked\resources\builtin-skills\expert-manager\scripts\`
+  `%USERPROFILE%\AppData\Local\Programs\LearnBuddy\resources\app.asar.unpacked\resources\builtin-skills\expert-manager\scripts\`
   （batch_create.py / init_expert.py / package_expert.py / register_expert.py / test_package_expert.py / validate_expert.py，
   Glob 实测存在）。
 - 推论：六个技能 `build()` 的确定性 Python 部分可以直接放进 `skills/*/scripts/`，

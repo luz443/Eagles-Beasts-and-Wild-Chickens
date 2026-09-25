@@ -1,0 +1,7 @@
+# 统一换行：仓库一律 LF（P1-4 的教训：Windows 生成物一旦变 CRLF，逐字节镜像测试就红）
+* text=auto eol=lf
+*.docx binary
+*.png binary
+*.jpg binary
+*.zip binary
+*.pyc binary

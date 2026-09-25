@@ -159,9 +159,14 @@ def cmd_dedup_check(args):
 def cmd_apply_clarification(args):
     raw = read_json(args.record)
     skill = ReverseLookupSkill()
+    answer = (getattr(args, "answer", "") or "").strip()
     out = skill.apply_clarification_facts(
-        SkillOutput(payload=raw, narrative=""), args.keys)
-    emit({"ok": True, "payload": out.payload, "warnings": out.warnings})
+        SkillOutput(payload=raw, narrative=""), args.keys, answer=answer)
+    warnings = list(out.warnings)
+    if not answer:
+        # 不给答复原文就只记账、不留痕：必须说在明面上，不能让专家以为已经记进档案。
+        warnings.append("未提供 --answer：只记账、不留痕（clarifications 不会写入档案）")
+    emit({"ok": True, "payload": out.payload, "warnings": warnings})
 
 
 def cmd_condition_compare(args):
@@ -257,8 +262,23 @@ def cmd_selftest(_args):
          0 if ok else 1)
 
 
+class _JsonArgumentParser(argparse.ArgumentParser):
+    """用法错误也走 JSON（2026-09-22 后端审查 P2-9）。
+
+    argparse 默认只把用法打到 stderr、stdout 一个字节都没有，退出码 2 ——
+    这与本文件开头的承诺「输出一律 JSON（stdout）；错误也走 JSON，退出码非 0」相反：
+    专家按 JSON 解析 stdout 会直接炸，而不是拿到一条可读的失败原因。
+    覆写 error() 即可（argparse 的所有参数错误都经过它）；`emit()` 内部 sys.exit，
+    退出码仍是非 0（沿用 argparse 惯例的 2）。
+    """
+
+    def error(self, message: str):  # type: ignore[override]
+        emit({"ok": False, "error": "参数用法错误：%s" % message,
+              "usage": self.format_usage().strip()}, 2)
+
+
 def build_parser():
-    p = argparse.ArgumentParser(prog="rra_cli", description="研究复盘助手 · 确定性命令行入口")
+    p = _JsonArgumentParser(prog="rra_cli", description="研究复盘助手 · 确定性命令行入口")
     sub = p.add_subparsers(dest="command", required=True)
 
     sub.add_parser("contract-dims", help="列出九维枚举").set_defaults(func=cmd_contract_dims)
@@ -291,6 +311,7 @@ def build_parser():
     s = sub.add_parser("apply-clarification", help="澄清记账：移除已澄清项并递增版本")
     s.add_argument("record")
     s.add_argument("keys", nargs="+")
+    s.add_argument("--answer", default="", help="澄清答复原文；给了才写入 clarifications")
     s.set_defaults(func=cmd_apply_clarification)
 
     s = sub.add_parser("condition-compare", help="两条记录的条件对比（确定性部分）")
