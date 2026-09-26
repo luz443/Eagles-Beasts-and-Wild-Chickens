@@ -1,0 +1,7 @@
+{
+  "name": "rra-web",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "研究复盘助手网页侧。零运行时依赖，仅用于让 Node 按 ES Module 解析本目录。"
+}

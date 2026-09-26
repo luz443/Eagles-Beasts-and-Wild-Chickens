@@ -1,0 +1,147 @@
+/* ============================================================================
+ * base.css —— 重置、排版、氛围层、焦点、降级动效
+ * 只依赖 tokens.css 的令牌；不出现任何裸色值。
+ * ========================================================================= */
+
+/* ---------- 重置 ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { background: var(--paper); }
+
+body {
+  margin: 0;
+  min-height: 100dvh;                 /* 用 dvh，不用 h-screen 式的 100vh */
+  background: var(--paper);
+  color: var(--ink);
+  font: var(--fs-base) / var(--lh-base) var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ---------- 氛围层：暖调底光 + 纸浆颗粒 ----------
+ * 两层都固定在视口、不接收事件、z-index 落在内容之下：
+ * 只有"纸面"（卡片缝隙与页面留白）透出纹理，印上去的卡片保持干净。 */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: var(--z-atmos);
+}
+
+body::before {   /* 顶部一处极浅的暖色底光，替代纯色平铺；不做彩色渐变 */
+  background: radial-gradient(60rem 32rem at 18% -12%, rgba(166, 58, 36, .05), transparent 62%);
+}
+
+body::after {    /* 纸浆颗粒：SVG feTurbulence 生成，叠在纸面上 */
+  opacity: .05;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* 内容层抬到氛围层之上 */
+.topbar, .wrap, .foot, .toast-stack { position: relative; z-index: var(--z-base); }
+
+/* ---------- 版面容器 ---------- */
+.wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 var(--sp-5) var(--sp-8); }
+
+/* ---------- 语义化标题层级 ---------- */
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; }
+h1 { margin: 0; font-size: var(--fs-2xl); line-height: var(--lh-tight); letter-spacing: var(--ls-display); }
+h2 { margin: 0 0 var(--sp-3); font-size: var(--fs-xl); line-height: var(--lh-snug); }
+h3 { margin: 0 0 var(--sp-2); font-size: var(--fs-lg); line-height: var(--lh-snug); }
+
+p { margin: 0 0 var(--sp-3); max-width: var(--measure); }
+p:last-child { margin-bottom: 0; }
+
+a { color: var(--accent); text-underline-offset: 2px; }
+
+/* 档案编号、分数、日期、句读一律等宽数字，列不会跳动 */
+.mono, .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.mono { font-size: var(--fs-sm); }
+
+/* 键帽：等宽 + 浅纸底 + 略厚下边，读起来像"一个键"而不是"一段代码" */
+kbd {
+  font-family: var(--font-mono);
+  font-size: .92em;
+  padding: 0 var(--sp-1);
+  border: 1px solid var(--rule-strong);
+  border-bottom-width: 2px;
+  border-radius: var(--r-xs);
+  background: var(--paper-2);
+  color: var(--ink-2);
+}
+
+/* ---------- 焦点：可见、且足够醒目（原实现用了近乎看不见的浅色描边） ---------- */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--r-xs);
+}
+:focus:not(:focus-visible) { outline: none; }
+
+/* ---------- 跳转链接（键盘用户第一个可聚焦元素） ---------- */
+.skip-link {
+  position: absolute;
+  left: var(--sp-4);
+  top: calc(-1 * var(--sp-8));
+  z-index: var(--z-toast);
+  padding: var(--sp-2) var(--sp-4);
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: var(--r-sm);
+  text-decoration: none;
+  font-size: var(--fs-sm);
+  transition: top var(--dur-fast) var(--ease-out);
+}
+.skip-link:focus { top: var(--sp-4); }
+
+/* 仅供屏幕阅读器 */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+
+/* ---------- 入场序列：一次编排好的错峰，而不是散落的微动效 ----------
+ * 只动 opacity / transform，不动布局属性。
+ * 作用域限定在 .is-entering（挂载后由 base.js 在动画结束后摘掉），
+ * 因此检索、筛选造成的重渲染不会反复播放动画。 */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.topbar                { animation: rise var(--dur-base) var(--ease-out) both; }
+.tabs                  { animation: rise var(--dur-base) var(--ease-out) 70ms both; }
+#view-root             { animation: rise var(--dur-base) var(--ease-out) 140ms both; }
+
+.is-entering .card,
+.is-entering .map-cell { animation: rise var(--dur-base) var(--ease-out) both; }
+
+/* 3–6 组错峰，之后同时入场（不做无限错峰，避免长列表越等越久） */
+.is-entering > .card:nth-child(1), .is-entering .map-cell:nth-child(1) { animation-delay: 180ms; }
+.is-entering > .card:nth-child(2), .is-entering .map-cell:nth-child(2) { animation-delay: calc(180ms + var(--stagger)); }
+.is-entering > .card:nth-child(3), .is-entering .map-cell:nth-child(3) { animation-delay: calc(180ms + var(--stagger) * 2); }
+.is-entering > .card:nth-child(4), .is-entering .map-cell:nth-child(4) { animation-delay: calc(180ms + var(--stagger) * 3); }
+.is-entering > .card:nth-child(5), .is-entering .map-cell:nth-child(5) { animation-delay: calc(180ms + var(--stagger) * 4); }
+.is-entering > .card:nth-child(n+6), .is-entering .map-cell:nth-child(n+6) { animation-delay: calc(180ms + var(--stagger) * 5); }
+
+/* ---------- 降级：系统要求减少动效时，全部关掉 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- 打印：档案是要能被打印带走的 ---------- */
+@media print {
+  body::before, body::after { display: none; }
+  .topbar .actions, .tabs, .toast-stack, .skip-link { display: none; }
+  .card { break-inside: avoid; box-shadow: none; }
+  .wrap { max-width: none; padding: 0; }
+}

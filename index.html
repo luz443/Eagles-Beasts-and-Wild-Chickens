@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <meta name="theme-color" content="#a63a24" />
+  <meta name="description" content="研究复盘助手 · 经验库：把失败与阻塞记录成带编号、带证据、可复核的研究档案。" />
+  <!-- 页签图标：内联 SVG（不额外请求文件，也就不会再产生 favicon.ico 的 404）。
+       色值等于 tokens.css 的 --accent；data URI 里引用不到 CSS 变量，这里是唯一的重复处。 -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%23a63a24'/%3E%3Ctext x='16' y='23' font-size='20' text-anchor='middle' fill='%23ffffff' font-family='Georgia,serif'%3E%E7%A0%94%3C/text%3E%3C/svg%3E" />
+  <title>研究复盘助手 · 经验库</title>
+
+  <!-- 样式分三层：令牌 → 基础 → 组件。改版只动令牌即可全局换肤。 -->
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/components.css" />
+</head>
+<body>
+  <a class="skip-link" href="#view-root">跳到主要内容</a>
+
+  <header class="topbar">
+    <div class="wrap">
+      <div class="topbar-row">
+        <div>
+          <div class="brand">
+            <span class="brand-mark" aria-hidden="true">研</span>
+            <h1>研究复盘助手</h1>
+            <span class="badge stat" id="lib-stat" role="status" aria-live="polite">正在载入…</span>
+          </div>
+          <p class="tagline">记录研究过程，让经验成为可复核的证据。</p>
+        </div>
+        <div class="actions">
+          <details class="library-menu"><summary>档案库操作 ↗</summary><div class="menu-panel"><button id="btn-import" type="button">导入库文件</button><button id="btn-export" type="button">导出库文件</button><button id="btn-backup" type="button">备份验证计划</button><button id="btn-restore" type="button">恢复验证计划</button><p class="small muted" id="sync-status">本地保存 · 手动与专家交换档案</p></div></details>
+        </div>
+      </div>
+      <nav class="tabs" id="tabs" aria-label="视图导航">
+        <!-- 导航按钮不是 tablist，用 aria-current="page" 标记当前项（不用 aria-selected）。
+             静态首帧就写对，否则读屏在脚本接管前会念出第二种状态。 -->
+        <button data-view="library" type="button" aria-current="page">经验库</button>
+        <button data-view="projectCheck" type="button">立项检查</button>
+        <button data-view="map" type="button">失败地图</button>
+        <button data-view="compareMatrix" type="button">条件对比矩阵</button>
+        <button data-view="incubation" type="button">孵化清单</button>
+        <button data-view="resurrection" type="button">可重试方向</button>
+      </nav>
+      <details class="keyboard-help"><summary>使用说明与快捷键</summary><p class="kbd-hint"><kbd>1</kbd>–<kbd>6</kbd> 切换视图，<kbd>/</kbd> 检索，<kbd>Esc</kbd> 关闭证据。专家侧生成档案后导入这里；网页中的验证计划保存在本机，可单独备份。</p></details>
+    </div>
+  </header>
+    <p class="muted" data-role="demo-note">演示库为模拟数据（provenance.source = 模拟）；真实使用由 LearnBuddy 专家写入档案后再导入。</p>
+
+  <div class="wrap">
+    <main id="view-root" tabindex="-1"><div class="card loading-state" role="status"><span class="eyebrow">RESEARCH MEMORY</span><h2>正在整理研究档案…</h2><p class="muted">准备条件、证据与研究轨迹。</p></div></main>
+    <footer class="foot">
+      作品形态：LearnBuddy 专家（AI 入口）+ 本网页（使用入口）。
+      网页侧全部为确定性代码，<b>不含任何模型调用</b>；语义判定由专家完成。
+      默认展示<b>模拟数据</b>，个人导入与验证计划仅保存在自己的浏览器。
+      专家与网页之间目前通过手动导入传递（平台侧数据通路待实测确认）。
+    </footer>
+  </div>
+
+  <!-- 轻提示容器：替代 alert()，aria-live 让屏幕阅读器也能听到导入结果 -->
+  <div class="toast-stack" id="toast-stack" role="status" aria-live="polite"></div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
